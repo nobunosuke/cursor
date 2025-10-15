@@ -13,6 +13,7 @@ alwaysApply: true
 
 - @workflows/task.mdc - タスク管理の基本ルール（命名規則、ファイル構造、開発フロー）
 - @workflows/issue.mdc - イシュー作成後のAI支援（ブランチ・description・タスクファイル作成）
+- @workflows/worktree.mdc - git worktreeによる並列開発（複数イシューの同時作業）
 
 ### クイックリファレンス
 
@@ -37,3 +38,12 @@ alwaysApply: true
    - タスクを進めながらチェックリストを自動更新
 5. **完了したらコミット・プッシュ**
    - すべてのタスク完了でAIが提案
+
+#### 高度な使い方: 並列開発
+
+**git worktree**を使用すると、複数のイシューを同時に作業できます：
+- 同じリポジトリの異なるブランチを複数のディレクトリで開く
+- 各ディレクトリで独立したCursorセッションを起動
+- AIに複数のイシューを並列実装させることが可能
+
+詳細は @workflows/worktree.mdc を参照。

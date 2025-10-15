@@ -35,6 +35,7 @@ GitHubでイシューを作成した後、AIがブランチ作成・description�
 ユーザーから以下の情報を受け取る：
 - **イシュー番号**: 例 `#42`
 - **タイトル**: 例「ユーザー認証機能を実装」
+- **worktreeオプション**（任意）: 「worktreeとして作業したい」などの指示
 
 ### ブランチ名の生成
 
@@ -49,11 +50,32 @@ typeはタイトルから推測（feat/fix/docs/refactor/testなど、詳細は 
 
 ### ブランチ作成の実行
 
+#### 通常のブランチ作成
+
 ユーザーに提案してから実行：
 
 ```bash
 git checkout -b {type}/{id}-{description}
 ```
+
+#### worktreeとして作成（オプション）
+
+ユーザーが「worktreeとして作業したい」と指示した場合：
+
+1. **worktreeパスを生成**:
+   - 推奨: `../worktrees/{type}-{id}-{description}`
+   - 例: `../worktrees/feat-42-user-authentication`
+
+2. **worktreeを作成**:
+   ```bash
+   git worktree add ../worktrees/{type}-{id}-{description} -b {type}/{id}-{description} main
+   ```
+
+3. **ユーザーに通知**:
+   - 「worktree `../worktrees/{type}-{id}-{description}` を作成しました。」
+   - 「Cursorで `{absolute-path}/worktrees/{type}-{id}-{description}` を開いてください。」
+
+詳細は @workflows/worktree.mdc を参照。
 
 ## Description生成
 
