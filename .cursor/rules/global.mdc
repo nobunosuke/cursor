@@ -27,9 +27,10 @@ alwaysApply: true
 #### 開発フロー
 
 1. **GitHubでイシューを作成**
-2. **ブランチを作成**（AI or 手動）
-   - AI: Cursorで「イシュー #42: ○○」と伝える → AIがブランチ作成
-   - 手動: `git checkout -b feat/42-user-auth`
+2. **worktree でブランチを作成**（AI or 手動）
+   - AI: Cursorで「イシュー #42: ○○」と伝える → AIが worktree として作成
+   - 手動: `git worktree add ../worktrees/feat-42-user-auth -b feat/42-user-auth main`
+   - 詳細は @workflows/worktree.mdc を参照
 3. **イシューのdescriptionを作成**（AI or 手動）
    - AI: AIが生成 → GitHub UIにコピペ
    - 手動: GitHub UIで直接記述
