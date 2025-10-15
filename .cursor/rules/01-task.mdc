@@ -185,7 +185,47 @@ Future Tasks → In Progress Tasks → Completed Tasks
 - ただし、ユーザーが明示的に指示した場合はこの限りではない
 - 大きな変更の場合、中間コミットを提案することも可能
 
+### コミットメッセージの規約
+
+[Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) に準拠し、日本語でメッセージを記述します（[Cursor のコミット機能](https://docs.cursor.com/ja/more/ai-commit-message)と同じ）。
+#### 基本構造
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+#### 主要なtype
+- **feat**: 新機能の追加
+- **fix**: バグ修正
+- **docs**: ドキュメントのみの変更
+- **style**: コードの動作に影響しない変更（空白、フォーマットなど）
+- **refactor**: バグ修正や機能追加を伴わないコードの変更
+- **perf**: パフォーマンス改善
+- **test**: テストの追加・修正
+- **build**: ビルドシステムや外部依存関係の変更
+- **ci**: CI設定ファイルやスクリプトの変更
+- **chore**: その他の変更
+
+#### Breaking Change
+- `BREAKING CHANGE:` フッターを使用するか、typeの後に `!` を付ける
+
+#### 例
+```
+feat(auth): ユーザー認証機能を追加
+
+docs: READMEにセットアップ手順を追加
+
+fix(api): ログイン時のトークン検証エラーを修正
+
+refactor: コード構造を整理
+```
+
 ## 参考
 
 - [playbooks.com - Task Lists](https://playbooks.com/rules/task-lists)
+- [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/)
+- [Cursor - AI Commit Message](https://docs.cursor.com/ja/more/ai-commit-message)
 - [Cursor でのタスク管理方法・命名規則（Claude）](https://claude.ai/chat/e4659ca0-7a25-4bf7-a3d0-d06d18f0e84b)（人間用、AIはアクセスしない）

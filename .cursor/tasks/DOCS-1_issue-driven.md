@@ -11,6 +11,7 @@ Cursor環境でブランチベースのタスク管理フローを確立し、AI
 - [x] 実際の動作を検証（このタスク自体で検証）
 - [x] README.mdに開発フローのドキュメントを追加
 - [x] 01-task.mdcと02-workflow.mdcを統合（開発フローを一元化）
+- [x] Conventional Commits v1.0.0に準拠したコミットメッセージの規約を追加
 
 ## In Progress Tasks
 
