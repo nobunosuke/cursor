@@ -5,32 +5,40 @@ alwaysApply: true
 
 # タスク管理ルール
 
+このプロジェクトでは、GitHubイシュー駆動開発を採用しています。すべてのブランチとタスクファイルは、GitHubイシューに紐づいています。
+
 ## フォルダ構成
 
 ```
 .cursor/
   tasks/
-    {your-issue}.md
-    {your-issue}.md
+    {TYPE}-{ID}_{description}.md
+    {TYPE}-{ID}_{description}.md
 ```
+
+各タスクファイルは、対応するGitHubイシューとブランチに紐づいています。
 
 ## 命名規則
 
 ### ブランチ命名規則
 `{type}/{id}-{description}`
 
+`{id}` はGitHubイシュー番号です。
+
 例:
-- `docs/1-issue-driven`
-- `feat/42-user-authentication`
-- `bug/123-fix-login`
+- `docs/1-issue-driven` → GitHubイシュー #1
+- `feat/42-user-authentication` → GitHubイシュー #42
+- `bug/123-fix-login` → GitHubイシュー #123
 
 ### タスクファイル命名規則
 `{TYPE}-{ID}_{description}.md`
 
+`{ID}` はGitHubイシュー番号です（ブランチのIDと同じ）。
+
 例:
-- `DOCS-1_issue-driven.md`
-- `FEAT-42_user-authentication.md`
-- `BUG-123_fix-login.md`
+- `DOCS-1_issue-driven.md` → GitHubイシュー #1
+- `FEAT-42_user-authentication.md` → GitHubイシュー #42
+- `BUG-123_fix-login.md` → GitHubイシュー #123
 
 ### ブランチ名からタスクファイル名への変換
 1. `{type}` を大文字に変換 → `{TYPE}`
