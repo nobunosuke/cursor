@@ -64,7 +64,7 @@ git log main..HEAD --oneline
 2. **ファイル変更は具体的に**
    ```markdown
    **新規追加:**
-   - `.cursor/rules/01-task.mdc` - タスク管理の命名規則・構造・AI動作
+   - `.cursor/rules/workflows/task.mdc` - タスク管理の命名規則・構造・AI動作
    - `README.md` - タスク管理システムの使い方を追加（95行）
    ```
 

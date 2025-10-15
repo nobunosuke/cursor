@@ -128,9 +128,10 @@ AIと一緒にタスクを実装しながら、タスクファイルのチェッ
 
 プロジェクトの詳細なルールは以下のファイルを参照してください：
 
-- [`.cursor/rules/00-global.mdc`](.cursor/rules/00-global.mdc) - グローバルルールとクイックリファレンス
-- [`.cursor/rules/01-task.mdc`](.cursor/rules/01-task.mdc) - タスク管理と開発フローの統合ルール（命名規則、ファイル構造、AIの動作）
-- [`.cursor/rules/03-issue-workflow.mdc`](.cursor/rules/03-issue-workflow.mdc) - GitHubイシュー駆動開発ワークフロー
+- [`.cursor/rules/global.mdc`](.cursor/rules/global.mdc) - グローバルルールとクイックリファレンス
+- [`.cursor/rules/workflows/task.mdc`](.cursor/rules/workflows/task.mdc) - タスク管理と開発フローの統合ルール（命名規則、ファイル構造、AIの動作）
+- [`.cursor/rules/workflows/issue.mdc`](.cursor/rules/workflows/issue.mdc) - GitHubイシュー駆動開発ワークフロー
+- [`.cursor/rules/workflows/pr.mdc`](.cursor/rules/workflows/pr.mdc) - プルリクエストメッセージ作成ルール
 
 ## 参考資料
 

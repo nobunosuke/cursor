@@ -11,8 +11,8 @@ alwaysApply: true
 
 ### 関連ルール
 
-- @tasks/01-task.mdc - タスク管理の基本ルール（命名規則、ファイル構造、開発フロー）
-- @tasks/03-issue-workflow.mdc - イシュー作成後のAI支援（ブランチ・description・タスクファイル作成）
+- @workflows/task.mdc - タスク管理の基本ルール（命名規則、ファイル構造、開発フロー）
+- @workflows/issue.mdc - イシュー作成後のAI支援（ブランチ・description・タスクファイル作成）
 
 ### クイックリファレンス
 
