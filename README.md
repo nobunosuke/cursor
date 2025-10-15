@@ -202,6 +202,29 @@ git worktree remove ../worktrees/feat-42-feature-a
 - [`.cursor/rules/workflows/issue.mdc`](.cursor/rules/workflows/issue.mdc) - GitHubイシュー駆動開発ワークフロー
 - [`.cursor/rules/workflows/pr.mdc`](.cursor/rules/workflows/pr.mdc) - プルリクエストメッセージ作成ルール
 
+## 他のプロジェクトで共有ルールを使う
+
+このリポジトリの `.cursor/rules` を、他のプロジェクトでも使用できます。
+
+詳しくは **[SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md)** を参照してください。
+
+### クイックスタート（シンプルなコピー方式）
+
+```bash
+# 他のプロジェクトで実行
+cd /path/to/your-project
+mkdir -p .cursor/rules
+cp -r /path/to/cursor/.cursor/rules/* .cursor/rules/
+echo ".cursor/rules/" >> .git/info/exclude
+```
+
+**ポイント:**
+- `.git/info/exclude` を使うことで、ローカルで管理しつつリモートにはプッシュしない
+- チームメンバーには影響なし
+- 個人での使用に最適
+
+より高度な管理（Git Submodule など）は [SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md) を参照。
+
 ## 参考資料
 
 - [playbooks.com - Task Lists](https://playbooks.com/rules/task-lists)
