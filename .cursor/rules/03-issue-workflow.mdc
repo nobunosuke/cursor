@@ -1,0 +1,96 @@
+---
+description: GitHubイシュー駆動開発ワークフロー
+alwaysApply: false
+---
+
+# GitHubイシュー駆動開発ワークフロー
+
+## 概要
+
+GitHubでイシューを作成した後、AIがブランチ作成・description生成・タスクファイル作成を支援します。
+
+> **注**: このルールは初期セットアップ（イシュー作成後のブランチ・タスクファイル作成）を支援するものです。手動でブランチ・descriptionを作成した場合でも、タスクファイル作成・開発進行は @tasks/01-task.mdc のルールに従います。
+
+## AI支援の範囲
+
+ユーザーがイシュー情報をAIに伝えた場合、以下を自動実行：
+1. ブランチ作成
+2. イシューのdescription生成
+3. タスクファイル作成
+
+すべて手動で行うことも可能です。
+
+## 基本フロー（AI支援を使う場合）
+
+1. **GitHubでイシューを作成**（手動）
+2. **ブランチをAIに作成してもらう**
+3. **descriptionをAIに作成してもらう**
+4. **descriptionをGitHub UIにコピペ**
+5. **タスクファイルで開発を進める**（@tasks/01-task.mdc）
+
+## ブランチ作成
+
+### イシュー情報の抽出
+
+ユーザーから以下の情報を受け取る：
+- **イシュー番号**: 例 `#42`
+- **タイトル**: 例「ユーザー認証機能を実装」
+
+### ブランチ名の生成
+
+@tasks/01-task.mdc の命名規則 `{type}/{id}-{description}` に従う。
+
+typeはタイトルから推測（feat/fix/docs/refactor/testなど、詳細は @tasks/01-task.mdc を参照）。
+
+例：
+- `#42: ユーザー認証機能を実装` → `feat/42-user-authentication`
+- `#123: ログインエラーを修正` → `fix/123-login-error`
+- `#1: READMEを更新` → `docs/1-update-readme`
+
+### ブランチ作成の実行
+
+ユーザーに提案してから実行：
+
+```bash
+git checkout -b {type}/{id}-{description}
+```
+
+## Description生成
+
+ブランチ作成後、イシューのdescription（詳細説明）を生成。
+
+### フォーマット
+
+```markdown
+## 概要
+[簡潔な説明]
+
+## 背景
+[なぜ必要か]
+
+## ゴール
+- [ ] ゴール1
+- [ ] ゴール2
+
+## 関連リンク
+- ブランチ: `{branch_name}`
+- タスクファイル: `.cursor/tasks/{TASK_FILE}.md`
+- [関連するドキュメントやリソースがあれば追加]
+```
+
+生成後、ユーザーにGitHub UIへのコピペを促す。
+
+## タスクファイルの作成
+
+ブランチ作成後、対応するタスクファイルを作成（@tasks/01-task.mdc の規則に従う）。
+
+例：
+- ブランチ: `feat/42-user-authentication`
+- タスクファイル: `.cursor/tasks/FEAT-42_user-authentication.md`
+
+descriptionのゴールをタスクリストに変換し、Implementation Planに技術的な計画を記載。
+
+## 参考
+
+- @tasks/01-task.mdc - タスク管理の基本ルール
+- @tasks/00-global.mdc - グローバルルール
