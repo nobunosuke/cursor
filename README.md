@@ -14,11 +14,11 @@
 ### 基本的な流れ
 
 1. **GitHubでイシューを作成**
-2. **ブランチを作成**（AIまたは手動）
+2. **git worktreeでブランチを作成**（AIまたは手動）
 3. **イシューのdescriptionを作成**（AIまたは手動）
 4. **タスクファイルで開発を進める**（AI支援）
 
-> **注**: どこからAIに任せるかは自由です。すべて手動でも、すべてAIに任せても構いません。
+> **注**: どこからAIに任せるかは自由です。すべて手動でも、すべてAIに任せても構いません。基本的にはgit worktreeでブランチを作成することを推奨します。
 
 ### パターン1: AIに全部任せる（推奨）
 
@@ -36,14 +36,16 @@
 3. **AIが自動的に実行**
    - イシュー内容から適切なtype（feat/bug/docsなど）を判定
    - ブランチ名を生成・提案: `feat/42-user-authentication`
-   - ブランチ作成コマンドを実行
+   - **git worktreeとしてブランチを作成**: `git worktree add ../worktrees/feat-42-user-authentication -b feat/42-user-authentication main`
    - イシューのdescription（詳細説明）を生成
    - タスクファイル（`.cursor/tasks/FEAT-42_user-authentication.md`）を作成
 
 4. **GitHub UIでdescriptionをコピペ**
    - AIが生成したdescriptionをGitHubのイシューページに貼り付け
 
-5. **開発を進める**
+5. **作成されたworktreeをCursorで開く**
+   - ターミナルで `cursor {worktree-path}` を実行（例: `cursor ../worktrees/feat-42-user-authentication`）
+   - またはCursor UIから直接開く
    - AIと一緒にタスクを実装
    - タスクファイルが自動更新される
 
@@ -52,14 +54,17 @@
 #### 手順
 
 1. **GitHubでイシューを作成**（手動）
-2. **ブランチを作成**（手動）
+2. **git worktreeでブランチを作成**（手動）
    ```bash
-   git checkout -b feat/42-user-authentication
+   # メインリポジトリから実行
+   git worktree add ../worktrees/feat-42-user-authentication -b feat/42-user-authentication main
    ```
 3. **イシューのdescriptionを記述**（手動）
-4. **AIを呼び出す**
-   - 現在のブランチ名を検出
-   - 対応するタスクファイルが存在しない場合、作成を提案
+4. **作成したworktreeをCursorで開く**
+   ```bash
+   cursor ../worktrees/feat-42-user-authentication
+   ```
+   - 対応するタスクファイルが存在しない場合、AIが作成を提案
 5. **開発を進める**
    - AIと一緒にタスクを実装
    - タスクファイルが自動更新される
@@ -78,17 +83,20 @@ AIと一緒にタスクを実装しながら、タスクファイルのチェッ
 
 すべてのタスクが完了すると、AIがコミット・プッシュを提案します。
 
-## 高度な使い方
+## Git Worktree の詳細
 
-### Git Worktree による並列開発
+### 複数イシューの並列開発
 
-複数のイシューを同時に作業したい場合、git worktreeを使用すると、同じリポジトリの異なるブランチを複数のディレクトリで開くことができます。
+基本的にgit worktreeを使用しますが、複数のイシューを同時に作業したい場合、複数のworktreeを作成することで、同じリポジトリの異なるブランチを並列で開発できます。
 
 #### 基本的な使い方
 
 ```bash
 # worktreeを作成（メインリポジトリから実行）
 git worktree add ../worktrees/feat-42-feature-a feat/42-feature-a
+
+# worktreeをCursorで開く
+cursor ../worktrees/feat-42-feature-a
 
 # worktree一覧を表示
 git worktree list

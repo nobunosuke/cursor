@@ -7,7 +7,9 @@ alwaysApply: false
 
 ## 概要
 
-git worktreeを使用して、同じリポジトリの異なるブランチを複数のディレクトリで同時に作業できる環境を提供します。これにより、AI駆動開発で複数のイシューを並列実装することが可能になります。
+このプロジェクトでは、git worktreeを基本的なブランチ作成方法として採用しています。
+
+git worktreeを使用することで、同じリポジトリの異なるブランチを複数のディレクトリで同時に作業でき、AI駆動開発で複数のイシューを並列実装することが可能になります。
 
 ## git worktreeとは
 
@@ -68,11 +70,15 @@ git worktree add <path> <branch>
 # 例: feat/42-feature-aブランチをworktreeとして追加
 git worktree add ../worktrees/feat-42-feature-a feat/42-feature-a
 
+# Cursorで開く
+cursor ../worktrees/feat-42-feature-a
+
 # 新しいブランチを作成しながらworktreeを追加
 git worktree add -b <new-branch> <path> <start-point>
 
 # 例: mainブランチから新しいブランチを作成してworktreeを追加
 git worktree add -b feat/44-new-feature ../worktrees/feat-44-new-feature main
+cursor ../worktrees/feat-44-new-feature
 ```
 
 ### worktreeの確認
@@ -118,7 +124,9 @@ git worktree prune
    ```
 
 2. **Cursorで開く**
-   - Cursorで `~/projects/worktrees/feat-42-feature-a` を開く
+   ```bash
+   cursor ~/projects/worktrees/feat-42-feature-a
+   ```
    - AIに「タスクを進めてください」と指示
    - AIは自動的に以下を実行:
      - `git branch --show-current` → `feat/42-feature-a` を検出
@@ -126,8 +134,10 @@ git worktree prune
      - タスクを実装
 
 3. **イシュー #43 のセットアップ（並列）**
-   - 別のCursorウィンドウを開く
-   - `~/projects/worktrees/feat-43-feature-b` を開く
+   ```bash
+   cursor ~/projects/worktrees/feat-43-feature-b
+   ```
+   - 別のCursorウィンドウが開く
    - 同様にAIがタスクを進行
 
 4. **完了後のクリーンアップ**
@@ -145,19 +155,23 @@ git worktree prune
 
 ### @workflows/issue.mdc との統合
 
-イシュー作成後のブランチ作成時に、worktreeとして作成するかどうかをユーザーに確認することが可能です（オプション）。
+イシュー作成後のブランチ作成時、デフォルトでworktreeとして作成します。
 
-#### 拡張例
+#### 基本フロー
 
-ユーザーが「イシュー #42 を作成しました。worktreeとして作業したいです。」と伝えた場合：
+ユーザーが「イシュー #42 を作成しました。タイトルは『機能A』です。」と伝えた場合：
 
 1. **ブランチ名を生成**: `feat/42-feature-a`
-2. **worktreeとして作成**:
+2. **worktreeとして作成**（デフォルト）:
    ```bash
    git worktree add ../worktrees/feat-42-feature-a -b feat/42-feature-a main
    ```
 3. **タスクファイルを作成**: `.cursor/tasks/FEAT-42_feature-a.md`
-4. **ユーザーに通知**: 「worktree `../worktrees/feat-42-feature-a` を作成しました。Cursorで開いてください。」
+4. **ユーザーに通知**: 
+   - 「worktree `../worktrees/feat-42-feature-a` を作成しました。」
+   - 「次のコマンドでCursorで開いてください: `cursor {absolute-path}/worktrees/feat-42-feature-a`」
+
+ユーザーが明示的に「通常のブランチで作業したい」と指示した場合のみ、`git checkout -b`を使用します。
 
 ### @workflows/task.mdc との統合
 

@@ -13,6 +13,11 @@ git worktreeを使用した複数ブランチの並列作業環境を整備し�
   - .cursor/が共有されるという誤りを修正
   - 不要なユースケース2, 3とトラブルシューティングを削除
   - 公式ドキュメントと参考リンクを追加
+- [x] git worktreeを基本的なチェックアウト方法として位置づける
+  - README.mdの開発フローをworktreeベースに変更
+  - issue.mdcでデフォルトをworktreeに変更（通常のブランチ作成はオプション扱い）
+  - worktree.mdcの概要を更新し、基本的な方法として明記
+  - `cursor {directory}`コマンドの使い方を各ドキュメントに追記
 
 ## In Progress Tasks
 
