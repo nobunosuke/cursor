@@ -11,7 +11,7 @@
 
 ## 命名規則
 
-[TYPE]-[ISSUE_ID]_[description].md
+`[TYPE]-[ISSUE_ID]_[description].md`
 
 - TYPE: タスクの種類 (ex: FEAT, BUG, DOCS, etc.)
 - ISSUE_ID: タスクのID (ex: 123)
