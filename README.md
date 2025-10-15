@@ -25,3 +25,7 @@
     FEAT-123_add-feature.md
     BUG-456_fix-changelog.md
 ```
+
+## 参考
+
+- [Cursor でのタスク管理方法・命名規則（Claude）](https://claude.ai/chat/e4659ca0-7a25-4bf7-a3d0-d06d18f0e84b)
