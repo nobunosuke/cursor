@@ -188,9 +188,11 @@ Future Tasks → In Progress Tasks → Completed Tasks
 ### コミットメッセージの規約
 
 [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) に準拠し、日本語でメッセージを記述します（[Cursor のコミット機能](https://docs.cursor.com/ja/more/ai-commit-message)と同じ）。
-ただし optional body と optional footer は使用しません。
 
 #### 基本構造
+
+冗長になることもあるが AI が `git log` で変更内容を理解しやすくなるのでおすすめです。
+
 ```
 <type>[optional scope]: <description>
 

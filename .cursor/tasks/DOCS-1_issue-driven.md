@@ -12,6 +12,7 @@ Cursor環境でブランチベースのタスク管理フローを確立し、AI
 - [x] README.mdに開発フローのドキュメントを追加
 - [x] 01-task.mdcと02-workflow.mdcを統合（開発フローを一元化）
 - [x] Conventional Commits v1.0.0に準拠したコミットメッセージの規約を追加
+- [x] プルリクメッセージ作成ルール（02-pr-message.mdc）を追加
 
 ## In Progress Tasks
 
@@ -48,6 +49,7 @@ Cursor環境でブランチベースのタスク管理フローを確立し、AI
 
 - `.cursor/rules/00-global.mdc` - グローバルルール ✅
 - `.cursor/rules/01-task.mdc` - タスク管理と開発フローの統合ルール ✅
+- `.cursor/rules/02-pr-message.mdc` - プルリクメッセージ作成ルール ✅
 - `.cursor/rules/02-workflow.mdc` - 削除（01-task.mdcに統合） ✅
 - `.cursor/tasks/DOCS-1_issue-driven.md` - このタスクファイル ✅
 - `README.md` - プロジェクトのドキュメント ✅
