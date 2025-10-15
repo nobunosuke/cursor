@@ -1,0 +1,191 @@
+---
+description: タスク管理ルール
+alwaysApply: true
+---
+
+# タスク管理ルール
+
+## フォルダ構成
+
+```
+.cursor/
+  tasks/
+    {your-issue}.md
+    {your-issue}.md
+```
+
+## 命名規則
+
+### ブランチ命名規則
+`{type}/{id}-{description}`
+
+例:
+- `docs/1-issue-driven`
+- `feat/42-user-authentication`
+- `bug/123-fix-login`
+
+### タスクファイル命名規則
+`{TYPE}-{ID}_{description}.md`
+
+例:
+- `DOCS-1_issue-driven.md`
+- `FEAT-42_user-authentication.md`
+- `BUG-123_fix-login.md`
+
+### ブランチ名からタスクファイル名への変換
+1. `{type}` を大文字に変換 → `{TYPE}`
+2. `/` を `-` に置換
+3. `-` の後の `{id}` をそのまま使用 → `{ID}`
+4. 2番目の `-` 以降を `_` で区切る → `_{description}`
+
+## タスクファイルの構造
+
+各タスクファイルは以下のセクションで構成されます（[playbooks.com方式](https://playbooks.com/rules/task-lists)に準拠）：
+
+### 必須セクション
+
+#### 1. タイトルと説明
+```markdown
+# 機能名・タスク名
+
+機能やタスクの目的と概要を簡潔に説明
+```
+
+#### 2. Completed Tasks
+```markdown
+## Completed Tasks
+
+- [x] 完了したタスク1
+- [x] 完了したタスク2
+```
+
+#### 3. In Progress Tasks
+```markdown
+## In Progress Tasks
+
+- [ ] 現在進行中のタスク1
+- [ ] 現在進行中のタスク2
+```
+
+#### 4. Future Tasks
+```markdown
+## Future Tasks
+
+- [ ] 今後実装予定のタスク1
+- [ ] 今後実装予定のタスク2
+```
+
+#### 5. Implementation Plan
+```markdown
+## Implementation Plan
+
+### 目標
+達成したい目標のリスト
+
+### アーキテクチャ
+アーキテクチャに関する決定事項
+
+### データフロー
+データの流れの説明
+
+### その他
+技術的な詳細、環境設定など
+```
+
+#### 6. Relevant Files
+```markdown
+## Relevant Files
+
+- path/to/file1.ts - ファイルの目的と説明
+- path/to/file2.py - ファイルの目的と説明
+- path/to/file3.md - ファイルの目的と説明
+```
+
+## AIによるタスク管理
+
+### タスクファイルの自動検出と作成提案
+
+ユーザーがAIを呼び出したとき：
+1. `git branch --show-current` で現在のブランチ名を取得
+2. ブランチ名からタスクファイル名を生成（上記の変換規則に従う）
+3. `.cursor/tasks/` ディレクトリ内にタスクファイルが存在するか確認
+4. 存在しない場合:
+   - 「現在のブランチ `{branch_name}` に対応するタスクファイル `{task_file_name}` が見つかりません。作成しますか？」と提案
+   - ユーザーが承認したら、playbooks.com形式のテンプレートでタスクファイルを作成
+
+### タスクファイルの更新タイミング
+
+AIは以下のタイミングでタスクファイルを更新する必要があります：
+
+1. **重要なコンポーネントを実装した後**
+   - 実装したタスクを "Completed Tasks" セクションに移動
+   - チェックマークを `[x]` に変更
+
+2. **新しいタスクを発見したとき**
+   - 適切なセクション（In Progress または Future Tasks）に追加
+
+3. **ファイルを作成・変更したとき**
+   - "Relevant Files" セクションを更新
+   - ファイルパスと簡潔な説明を記載
+
+4. **実装の詳細が明確になったとき**
+   - "Implementation Plan" セクションを更新
+
+### タスクの状態遷移
+
+```
+Future Tasks → In Progress Tasks → Completed Tasks
+```
+
+- タスクに着手したら "Future Tasks" から "In Progress Tasks" へ移動
+- タスクが完了したら "In Progress Tasks" から "Completed Tasks" へ移動
+- 移動時にチェックマークの状態も更新（`[ ]` → `[x]`）
+
+### タスク完了の判定
+
+以下の条件を満たす場合、タスクファイル全体が「完了」と判定：
+
+1. "In Progress Tasks" セクションがすべて完了（`[x]`）
+2. "Future Tasks" が空、または明示的に延期されている
+
+この条件を満たした場合、AIはコミット・プッシュを提案します。
+
+## タスクのベストプラクティス
+
+### タスクの粒度
+- 1タスク = 30分〜2時間程度の作業量
+- 細かすぎるタスク（「コメント追加」など）は避ける
+- 大きすぎるタスクは複数に分割
+
+### タスクの記述方法
+- 動詞で始める（「実装する」「作成する」「修正する」など）
+- 具体的で測定可能な内容にする
+- 技術的な詳細を含める
+
+例：
+- ✅ 良い例: `ユーザー認証用のJWTトークン検証ミドルウェアを実装`
+- ❌ 悪い例: `認証関連の作業`
+
+### Relevant Files セクションの記述
+- ファイルパスは相対パス（プロジェクトルートから）
+- 各ファイルの役割を簡潔に説明
+- 完了したファイルには ✅ を付けることも可
+
+例：
+```markdown
+## Relevant Files
+
+- src/middleware/auth.ts - JWT検証ミドルウェア ✅
+- src/routes/user.ts - ユーザー関連のルート定義
+- tests/auth.test.ts - 認証のテストコード
+```
+
+### コミットのタイミング
+- すべてのタスクが完了するまでコミットしない（原則）
+- ただし、ユーザーが明示的に指示した場合はこの限りではない
+- 大きな変更の場合、中間コミットを提案することも可能
+
+## 参考
+
+- [playbooks.com - Task Lists](https://playbooks.com/rules/task-lists)
+- [Cursor でのタスク管理方法・命名規則（Claude）](https://claude.ai/chat/e4659ca0-7a25-4bf7-a3d0-d06d18f0e84b)（人間用、AIはアクセスしない）
