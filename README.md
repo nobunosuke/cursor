@@ -14,11 +14,11 @@
 ### 基本的な流れ
 
 1. **GitHubでイシューを作成**
-2. **ブランチを作成**（AIまたは手動）
+2. **git worktreeでブランチを作成**（AIまたは手動）
 3. **イシューのdescriptionを作成**（AIまたは手動）
 4. **タスクファイルで開発を進める**（AI支援）
 
-> **注**: どこからAIに任せるかは自由です。すべて手動でも、すべてAIに任せても構いません。
+> **注**: どこからAIに任せるかは自由です。すべて手動でも、すべてAIに任せても構いません。基本的にはgit worktreeでブランチを作成することを推奨します。
 
 ### パターン1: AIに全部任せる（推奨）
 
@@ -36,14 +36,16 @@
 3. **AIが自動的に実行**
    - イシュー内容から適切なtype（feat/bug/docsなど）を判定
    - ブランチ名を生成・提案: `feat/42-user-authentication`
-   - ブランチ作成コマンドを実行
+   - **git worktreeとしてブランチを作成**: `git worktree add ../worktrees/feat-42-user-authentication -b feat/42-user-authentication main`
    - イシューのdescription（詳細説明）を生成
    - タスクファイル（`.cursor/tasks/FEAT-42_user-authentication.md`）を作成
 
 4. **GitHub UIでdescriptionをコピペ**
    - AIが生成したdescriptionをGitHubのイシューページに貼り付け
 
-5. **開発を進める**
+5. **作成されたworktreeをCursorで開く**
+   - ターミナルで `cursor {worktree-path}` を実行（例: `cursor ../worktrees/feat-42-user-authentication`）
+   - またはCursor UIから直接開く
    - AIと一緒にタスクを実装
    - タスクファイルが自動更新される
 
@@ -52,14 +54,17 @@
 #### 手順
 
 1. **GitHubでイシューを作成**（手動）
-2. **ブランチを作成**（手動）
+2. **git worktreeでブランチを作成**（手動）
    ```bash
-   git checkout -b feat/42-user-authentication
+   # メインリポジトリから実行
+   git worktree add ../worktrees/feat-42-user-authentication -b feat/42-user-authentication main
    ```
 3. **イシューのdescriptionを記述**（手動）
-4. **AIを呼び出す**
-   - 現在のブランチ名を検出
-   - 対応するタスクファイルが存在しない場合、作成を提案
+4. **作成したworktreeをCursorで開く**
+   ```bash
+   cursor ../worktrees/feat-42-user-authentication
+   ```
+   - 対応するタスクファイルが存在しない場合、AIが作成を提案
 5. **開発を進める**
    - AIと一緒にタスクを実装
    - タスクファイルが自動更新される
@@ -77,6 +82,70 @@ AIと一緒にタスクを実装しながら、タスクファイルのチェッ
 ### 共通: 完了時のコミット
 
 すべてのタスクが完了すると、AIがコミット・プッシュを提案します。
+
+## Git Worktree の詳細
+
+### 複数イシューの並列開発
+
+基本的にgit worktreeを使用しますが、複数のイシューを同時に作業したい場合、複数のworktreeを作成することで、同じリポジトリの異なるブランチを並列で開発できます。
+
+#### 基本的な使い方
+
+```bash
+# worktreeを作成（メインリポジトリから実行）
+git worktree add ../worktrees/feat-42-feature-a feat/42-feature-a
+
+# worktreeをCursorで開く
+cursor ../worktrees/feat-42-feature-a
+
+# worktree一覧を表示
+git worktree list
+
+# worktreeを削除
+git worktree remove ../worktrees/feat-42-feature-a
+```
+
+#### AI駆動開発での活用
+
+1. **複数のCursorウィンドウで並列作業**
+   - ウィンドウ1: メインリポジトリで`main`ブランチ
+   - ウィンドウ2: worktree Aで`feat/42-feature-a`ブランチ
+   - ウィンドウ3: worktree Bで`feat/43-feature-b`ブランチ
+
+2. **各ウィンドウで独立したAI作業**
+   - 各worktreeには対応するタスクファイルが存在
+   - AIは各worktreeで自動的に正しいブランチとタスクファイルを検出
+   - 複数のイシューをAIに並列実装させることが可能
+
+#### ディレクトリ構造例
+
+```
+~/projects/
+  main/                          # メインリポジトリ
+    .git/                        # Gitリポジトリ本体
+      worktrees/                 # worktreeメタデータ
+    .cursor/                     # mainブランチのCursor設定
+      rules/
+      tasks/
+  
+  worktrees/                     # worktree専用ディレクトリ
+    feat-42-feature-a/          # worktree A
+      .git                       # ファイル（main/.git/worktrees/へのポインタ）
+      .cursor/                   # feat/42-feature-aブランチのCursor設定
+      src/                       # feat/42-feature-aブランチの内容
+    feat-43-feature-b/          # worktree B
+      .git                       # ファイル（main/.git/worktrees/へのポインタ）
+      .cursor/                   # feat/43-feature-bブランチのCursor設定
+      src/                       # feat/43-feature-bブランチの内容
+```
+
+#### 重要なポイント
+
+- 各worktreeディレクトリには、そのブランチのファイルが全てチェックアウトされます
+- 各worktreeでCursorを開けば、それぞれ独立した環境として動作します
+- worktree削除前に、作業中の変更はコミットまたは退避してください
+
+詳細は [`.cursor/rules/workflows/worktree.mdc`](.cursor/rules/workflows/worktree.mdc) を参照してください。
 
 ## ブランチとタスクファイルの命名規則
 
