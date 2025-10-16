@@ -9,7 +9,7 @@ alwaysApply: false
 
 GitHubでイシューを作成した後、AIがブランチ作成・description生成・タスクファイル作成を支援します。
 
-> **注**: このルールは初期セットアップ（イシュー作成後のブランチ・タスクファイル作成）を支援するものです。手動でブランチ・descriptionを作成した場合でも、タスクファイル作成・開発進行は @workflows/task.mdc のルールに従います。
+> **注**: このルールは初期セットアップ（イシュー作成後のブランチ・タスクファイル作成）を支援するものです。手動でブランチ・descriptionを作成した場合でも、タスクファイル作成・開発進行は @cursor-tasks.mdc のルールに従います。
 
 ## AI支援の範囲
 
@@ -26,7 +26,7 @@ GitHubでイシューを作成した後、AIがブランチ作成・description�
 2. **ブランチをAIに作成してもらう**
 3. **descriptionをAIに作成してもらう**
 4. **descriptionをGitHub UIにコピペ**
-5. **タスクファイルで開発を進める**（@workflows/task.mdc）
+5. **タスクファイルで開発を進める**（@cursor-tasks.mdc）
 
 ## ブランチ作成
 
@@ -39,9 +39,9 @@ GitHubでイシューを作成した後、AIがブランチ作成・description�
 
 ### ブランチ名の生成
 
-@workflows/task.mdc の命名規則 `{type}/{id}-{description}` に従う。
+@cursor-tasks.mdc の命名規則 `{type}/{id}-{description}` に従う。
 
-typeはタイトルから推測（feat/fix/docs/refactor/testなど、詳細は @workflows/task.mdc を参照）。
+typeはタイトルから推測（feat/fix/docs/refactor/testなど、詳細は @cursor-tasks.mdc を参照）。
 
 例：
 - `#42: ユーザー認証機能を実装` → `feat/42-user-authentication`
@@ -68,7 +68,7 @@ typeはタイトルから推測（feat/fix/docs/refactor/testなど、詳細は 
    - 「次のコマンドでCursorで開いてください:」
    - 「`cursor {absolute-path}/worktrees/{type}-{id}-{description}`」
 
-詳細は @workflows/worktree.mdc を参照。
+詳細は @git/worktree.mdc を参照。
 
 #### 通常のブランチ作成（オプション）
 
@@ -105,7 +105,7 @@ git checkout -b {type}/{id}-{description}
 
 ## タスクファイルの作成
 
-ブランチ作成後、対応するタスクファイルを作成（@workflows/task.mdc の規則に従う）。
+ブランチ作成後、対応するタスクファイルを作成（@cursor-tasks.mdc の規則に従う）。
 
 例：
 - ブランチ: `feat/42-user-authentication`
@@ -115,5 +115,7 @@ descriptionのゴールをタスクリストに変換し、Implementation Plan�
 
 ## 参考
 
-- @workflows/task.mdc - タスク管理の基本ルール
+- @cursor-tasks.mdc - タスク管理の基本ルール
+- @git/worktree.mdc - worktree の使い方
+- @git/commit.mdc - コミット時のルール
 - @global.mdc - グローバルルール
