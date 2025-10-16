@@ -11,9 +11,10 @@ alwaysApply: true
 
 ### 関連ルール
 
-- @workflows/task.mdc - タスク管理の基本ルール（命名規則、ファイル構造、開発フロー）
-- @workflows/issue.mdc - イシュー作成後のAI支援（ブランチ・description・タスクファイル作成）
-- @workflows/worktree.mdc - git worktreeによる並列開発（複数イシューの同時作業）
+- @cursor-tasks.mdc - タスク管理の基本ルール（命名規則、ファイル構造、開発フロー）
+- @git/issue.mdc - イシュー作成後のAI支援（ブランチ・description・タスクファイル作成）
+- @git/worktree.mdc - git worktreeによる並列開発（複数イシューの同時作業）
+- @git/commit.mdc - コミット時のルール（.cursor/ 除外含む）
 
 ### クイックリファレンス
 
@@ -30,7 +31,7 @@ alwaysApply: true
 2. **worktree でブランチを作成**（AI or 手動）
    - AI: Cursorで「イシュー #42: ○○」と伝える → AIが worktree として作成
    - 手動: `git worktree add ../worktrees/feat-42-user-auth -b feat/42-user-auth main`
-   - 詳細は @workflows/worktree.mdc を参照
+   - 詳細は @git/worktree.mdc を参照
 3. **イシューのdescriptionを作成**（AI or 手動）
    - AI: AIが生成 → GitHub UIにコピペ
    - 手動: GitHub UIで直接記述
@@ -47,4 +48,4 @@ alwaysApply: true
 - 各ディレクトリで独立したCursorセッションを起動
 - AIに複数のイシューを並列実装させることが可能
 
-詳細は @workflows/worktree.mdc を参照。
+詳細は @git/worktree.mdc を参照。

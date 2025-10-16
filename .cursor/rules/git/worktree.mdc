@@ -56,6 +56,17 @@ git worktreeは、同じGitリポジトリの異なるブランチを複数の�
 - `.cursor/`などのファイルは、そのブランチの内容がそのまま存在します（シンボリックリンクではありません）
 - 各worktreeでCursorを開けば、それぞれ独立した環境として動作します
 
+### `.cursor/` ディレクトリの引き継ぎ
+
+git worktree で新しいブランチを作成すると、`.cursor/` ディレクトリも自動的に引き継がれます。
+
+**仕組み**:
+1. `.cursor/` が Git 管理下にある場合、worktree 作成時にブランチの内容として引き継がれる
+2. `.gitignore` や `.git/info/exclude` で除外している場合は引き継がれない
+3. 各worktreeで独立して `.cursor/` を編集できる
+
+**重要**: `.cursor/` を Git 管理下に置きますが、コミット時には必ず除外してください。詳細は `@git/commit.mdc` を参照してください。
+
 ## 基本コマンド
 
 ### worktreeの作成
@@ -144,6 +155,9 @@ git worktree prune
    ```bash
    # 各worktreeでコミット・プッシュ
    cd ~/projects/worktrees/feat-42-feature-a
+   
+   # コミット（.cursor/ の除外については @git/commit.mdc を参照）
+   git commit -m "feat: 機能Aを実装"
    git push origin feat/42-feature-a
    
    # メインリポジトリでworktreeを削除
@@ -153,7 +167,7 @@ git worktree prune
 
 ## 既存ワークフローとの統合
 
-### @workflows/issue.mdc との統合
+### @git/issue.mdc との統合
 
 イシュー作成後のブランチ作成時、デフォルトでworktreeとして作成します。
 
@@ -173,7 +187,7 @@ git worktree prune
 
 ユーザーが明示的に「通常のブランチで作業したい」と指示した場合のみ、`git checkout -b`を使用します。
 
-### @workflows/task.mdc との統合
+### @cursor-tasks.mdc との統合
 
 **重要**: `git branch --show-current` はworktree内でも正常に動作します。
 
@@ -253,6 +267,7 @@ cd ~/projects/worktrees/feat-42-feature-a
 - [徹底解説：git worktree の使い方](https://qiita.com/syukan3/items/dab71e88ce91bca44432) - 基本的な使い方
 - [Git Worktreeをわかりやすく解説](https://zenn.dev/hiraoku/articles/56f4f9ffc6d186) - 初心者向け解説
 
-### 関連ワークフロー
-- @workflows/task.mdc - タスク管理ルール
-- @workflows/issue.mdc - イシューワークフロー
+### 関連ドキュメント
+- @cursor-tasks.mdc - タスク管理ルール
+- @git/issue.mdc - イシューワークフロー
+- @git/commit.mdc - コミット時のルール（.cursor/ 除外含む）
