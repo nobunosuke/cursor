@@ -1,0 +1,121 @@
+---
+description: GitHubイシュー駆動開発ワークフロー
+alwaysApply: false
+---
+
+# GitHubイシュー駆動開発ワークフロー
+
+## 概要
+
+GitHubでイシューを作成した後、AIがブランチ作成・description生成・タスクファイル作成を支援します。
+
+> **注**: このルールは初期セットアップ（イシュー作成後のブランチ・タスクファイル作成）を支援するものです。手動でブランチ・descriptionを作成した場合でも、タスクファイル作成・開発進行は @cursor-tasks.mdc のルールに従います。
+
+## AI支援の範囲
+
+ユーザーがイシュー情報をAIに伝えた場合、以下を自動実行：
+1. ブランチ作成
+2. イシューのdescription生成
+3. タスクファイル作成
+
+すべて手動で行うことも可能です。
+
+## 基本フロー（AI支援を使う場合）
+
+1. **GitHubでイシューを作成**（手動）
+2. **ブランチをAIに作成してもらう**
+3. **descriptionをAIに作成してもらう**
+4. **descriptionをGitHub UIにコピペ**
+5. **タスクファイルで開発を進める**（@cursor-tasks.mdc）
+
+## ブランチ作成
+
+### イシュー情報の抽出
+
+ユーザーから以下の情報を受け取る：
+- **イシュー番号**: 例 `#42`
+- **タイトル**: 例「ユーザー認証機能を実装」
+- **通常のブランチオプション**（任意）: 「通常のブランチで作業したい」などの指示（デフォルトはworktree）
+
+### ブランチ名の生成
+
+@cursor-tasks.mdc の命名規則 `{type}/{id}-{description}` に従う。
+
+typeはタイトルから推測（feat/fix/docs/refactor/testなど、詳細は @cursor-tasks.mdc を参照）。
+
+例：
+- `#42: ユーザー認証機能を実装` → `feat/42-user-authentication`
+- `#123: ログインエラーを修正` → `fix/123-login-error`
+- `#1: READMEを更新` → `docs/1-update-readme`
+
+### ブランチ作成の実行
+
+#### worktreeとして作成（デフォルト）
+
+基本的にworktreeとして作成します。ユーザーに提案してから実行：
+
+1. **worktreeパスを生成**:
+   - 推奨: `../worktrees/{type}-{id}-{description}`
+   - 例: `../worktrees/feat-42-user-authentication`
+
+2. **worktreeを作成**:
+   ```bash
+   git worktree add ../worktrees/{type}-{id}-{description} -b {type}/{id}-{description} main
+   ```
+
+3. **ユーザーに通知**:
+   - 「worktree `../worktrees/{type}-{id}-{description}` を作成しました。」
+   - 「次のコマンドでCursorで開いてください:」
+   - 「`cursor {absolute-path}/worktrees/{type}-{id}-{description}`」
+
+詳細は @git/worktree.mdc を参照。
+
+#### 通常のブランチ作成（オプション）
+
+ユーザーが明示的に「通常のブランチで作業したい」と指示した場合のみ：
+
+```bash
+git checkout -b {type}/{id}-{description}
+```
+
+## Description生成
+
+ブランチ作成後、イシューのdescription（詳細説明）を生成。
+
+### フォーマット
+
+```markdown
+## 概要
+[簡潔な説明]
+
+## 背景
+[なぜ必要か]
+
+## ゴール
+- [ ] ゴール1
+- [ ] ゴール2
+
+## 関連リンク
+- ブランチ: `{branch_name}`
+- タスクファイル: `.cursor/tasks/{TASK_FILE}.md`
+- [関連するドキュメントやリソースがあれば追加]
+```
+
+生成後、ユーザーにGitHub UIへのコピペを促す。
+
+## タスクファイルの作成
+
+ブランチ作成後、対応するタスクファイルを作成（@cursor-tasks.mdc の規則に従う）。
+
+例：
+- ブランチ: `feat/42-user-authentication`
+- タスクファイル: `.cursor/tasks/FEAT-42_user-authentication.md`
+
+descriptionのゴールをタスクリストに変換し、Implementation Planに技術的な計画を記載。
+
+## 参考
+
+- @cursor-tasks.mdc - タスク管理の基本ルール
+- @git/worktree.mdc - worktree の使い方
+- @git/commit.mdc - コミット時のルール
+- @global.mdc - グローバルルール
