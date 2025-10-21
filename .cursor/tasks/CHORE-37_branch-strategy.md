@@ -6,14 +6,14 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 
 - [x] ネット調査: ブランチ戦略のベストプラクティスを確認
 - [x] タスクファイル作成
-- [x] Mermaid 図をファイルに出力（シンタックスエラーの原因を調査）
+- [x] Mermaid 図をファイルに出力（シンタックスエラーの原因を調査・修正）
+- [x] orphan ブランチ `production` を作成
+- [x] `main` ブランチから submodule を削除し、`.cursor/rules/` を直接管理
+- [x] GitHub Actions ワークフロー作成（タグ作成時の自動同期）
+- [x] ブランチ戦略のドキュメント作成（`.cursor/rules/git/branch-strategy.mdc`）
 
 ## In Progress Tasks
 
-- [ ] orphan ブランチ `production` を作成
-- [ ] `main` ブランチから submodule を削除し、`.cursor/rules/` を直接管理
-- [ ] GitHub Actions ワークフロー作成（タグ作成時の自動同期）
-- [ ] ブランチ戦略のドキュメント作成（`.cursor/rules/git/branch-strategy.mdc`）
 - [ ] README.md を更新（新しいブランチ戦略を反映）
 
 ## Future Tasks
@@ -280,8 +280,14 @@ jobs:
 
 - `.cursor/tasks/CHORE-37_branch-strategy.md` - このタスクファイル ✅
 - `.cursor/tasks/ref/ref-CHORE-37_mermaid-diagrams.md` - Mermaid 図とシンタックスエラー調査 ✅
-- `.github/workflows/sync-production.yml` - GitHub Actions ワークフロー（新規作成予定）
-- `.cursor/rules/git/branch-strategy.mdc` - ブランチ戦略のドキュメント（新規作成予定）
+- `.github/workflows/sync-production.yml` - GitHub Actions ワークフロー ✅
+- `.cursor/rules/git/branch-strategy.mdc` - ブランチ戦略のドキュメント ✅
+- `.cursor/rules/cursor-tasks.mdc` - タスク管理ルール（submodule から通常ディレクトリへ）✅
+- `.cursor/rules/global.mdc` - グローバルルール（submodule から通常ディレクトリへ）✅
+- `.cursor/rules/git/commit.mdc` - コミットルール（submodule から通常ディレクトリへ）✅
+- `.cursor/rules/git/issue.mdc` - イシュールール（submodule から通常ディレクトリへ）✅
+- `.cursor/rules/git/pr.mdc` - PRルール（submodule から通常ディレクトリへ）✅
+- `.cursor/rules/git/worktree.mdc` - Worktree ルール（submodule から通常ディレクトリへ）✅
 - `README.md` - 更新予定
 - `SETUP_SHARED_RULES.md` - 更新予定（submodule → orphan ブランチ）
 
