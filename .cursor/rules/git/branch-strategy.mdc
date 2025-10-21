@@ -1,0 +1,221 @@
+# ブランチ戦略: production / main 構成
+
+このリポジトリは、開発用ブランチと公開用ブランチを分けて管理しています。
+
+## ブランチ構成
+
+### `main` ブランチ（開発用）
+
+- **用途**: 開発のベースブランチ
+- **含まれるファイル**: すべて
+  - `.cursor/rules/` - Cursor ルールファイル
+  - `.cursor/tasks/` - タスクファイル（開発用）
+  - `README.md` - cursor-workspace の README
+  - `SETUP_SHARED_RULES.md` - セットアップ手順
+  - `.github/workflows/` - CI/CD 設定
+- **運用**: 
+  - feature ブランチはここから分岐
+  - GitHub のデフォルトブランチ
+  - clone すると開発環境が手に入る
+
+### `production` ブランチ（公開用）
+
+- **用途**: cursor-rules として公開・配布
+- **含まれるファイル**: `.cursor/rules/` の内容のみ
+  - `rules/` - Cursor ルールファイル（通常のディレクトリとして配置）
+  - `README.md` - cursor-rules の README
+  - `LICENSE` - MIT ライセンス
+- **特徴**:
+  - orphan ブランチ（`main` とは完全に独立した履歴）
+  - Git タグでバージョン管理（`v1.0.0`, `v1.1.0` など）
+  - タスクファイルや開発用ファイルは含まない
+
+## ワークフロー
+
+### 通常の開発
+
+```bash
+# 1. main から feature ブランチを作成
+git checkout main
+git checkout -b feat/42-new-rule
+
+# 2. 開発（タスクファイルで進捗管理）
+# .cursor/tasks/FEAT-42_new-rule.md
+# .cursor/rules/ を編集
+
+# 3. コミット & プッシュ
+git add .
+git commit -m "feat: 新しいルールを追加"
+git push origin feat/42-new-rule
+
+# 4. PR を作成してマージ
+gh pr create --base main --head feat/42-new-rule
+gh pr merge 42
+```
+
+### リリース（production への同期）
+
+```bash
+# 1. main で開発が完了したらタグを作成
+git checkout main
+git pull
+git tag v1.1.0
+git push origin v1.1.0
+
+# 2. GitHub Actions が自動的に production に同期
+# （.github/workflows/sync-production.yml）
+```
+
+GitHub Actions が以下を自動実行：
+1. `.cursor/rules/` の内容を production ブランチに同期
+2. production ブランチで同じタグ（`v1.1.0`）を作成
+3. GitHub Release を作成
+
+## ブランチ戦略の背景
+
+このパターンは **GitLab Flow** の一種で、環境ごとにブランチを分ける一般的な戦略です。
+
+### 類似パターン
+
+- **GitLab Flow**: `main` (開発) → `production` (本番環境)
+- **gh-pages パターン**: `main` (ソース) → `gh-pages` (ビルド成果物)
+
+### なぜ orphan ブランチを使うのか
+
+1. **履歴の分離**: 開発用と公開用で完全に独立した履歴を持つ
+2. **軽量化**: production ブランチには公開に必要な最小限のファイルのみ
+3. **明確な役割分担**: 開発環境と配布物を明確に区別
+
+## GitHub Actions ワークフロー
+
+`.github/workflows/sync-production.yml`:
+
+```yaml
+name: Sync to production
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Sync .cursor/rules/ to production
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git checkout production
+          git rm -rf rules/
+          git checkout main -- .cursor/rules/
+          mv .cursor/rules rules
+          rm -rf .cursor
+          
+          git add .
+          git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
+          git tag ${GITHUB_REF_NAME}
+          git push origin production --tags
+```
+
+## ディレクトリ構成
+
+### main ブランチ
+
+```
+main/
+  .cursor/
+    rules/              # Cursor ルールファイル（通常のディレクトリ）
+      cursor-tasks.mdc
+      global.mdc
+      git/
+        commit.mdc
+        issue.mdc
+        pr.mdc
+        worktree.mdc
+        branch-strategy.mdc  # このファイル
+    tasks/              # タスクファイル（開発用）
+      FEAT-42_new-rule.md
+      ...
+  .github/
+    workflows/
+      sync-production.yml  # 自動同期ワークフロー
+  README.md             # cursor-workspace の README
+  SETUP_SHARED_RULES.md
+```
+
+### production ブランチ
+
+```
+production/
+  rules/                # .cursor/rules/ の内容
+    cursor-tasks.mdc
+    global.mdc
+    git/
+      commit.mdc
+      issue.mdc
+      pr.mdc
+      worktree.mdc
+      branch-strategy.mdc
+  README.md             # cursor-rules の README
+  LICENSE
+```
+
+## 注意事項
+
+- production ブランチには直接コミットしない（GitHub Actions で自動同期）
+- タグは main ブランチで作成する
+- production ブランチのタグは GitHub Actions が自動作成
+
+## 移行前（submodule 方式）との比較
+
+### 以前（submodule）
+
+```
+cursor-workspace/
+  .cursor/
+    rules/  → cursor-rules リポジトリへの参照（submodule）
+    tasks/
+```
+
+別リポジトリ cursor-rules:
+```
+cursor-rules/
+  rules/
+  README.md
+  LICENSE
+```
+
+**問題点:**
+- 2つのリポジトリを管理する必要がある
+- submodule の更新が煩雑
+
+### 現在（orphan ブランチ）
+
+```
+main ブランチ:
+  .cursor/
+    rules/  → 通常のディレクトリとして直接管理
+    tasks/
+
+production ブランチ (orphan):
+  rules/  → main の .cursor/rules/ と同期
+  README.md
+  LICENSE
+```
+
+**利点:**
+- 1つのリポジトリで完結
+- GitHub Actions で自動同期
+- 開発中のタスクファイルも Git 管理可能
+
+## 参考資料
+
+- [GitLab Flow](https://docs.gitlab.com/ee/topics/gitlab_flow.html)
+- [Git Branching Strategies](https://www.atlassian.com/git/tutorials/comparing-workflows)
+- [GitHub Actions](https://docs.github.com/ja/actions)
