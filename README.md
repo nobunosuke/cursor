@@ -204,26 +204,31 @@ git worktree remove ../worktrees/feat-42-feature-a
 
 ## 他のプロジェクトで共有ルールを使う
 
-このリポジトリの `.cursor/rules` を、他のプロジェクトでも使用できます。
+このリポジトリ（`cursor-workspace`）の `.cursor/rules/` は、専用リポジトリ `cursor-rules` として切り出され、**Git Submodule** で複数のプロジェクトから使用できます。
 
 詳しくは **[SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md)** を参照してください。
 
-### クイックスタート（シンプルなコピー方式）
+### クイックスタート（Git Submodule 方式）
 
 ```bash
 # 他のプロジェクトで実行
 cd /path/to/your-project
-mkdir -p .cursor/rules
-cp -r /path/to/cursor/.cursor/rules/* .cursor/rules/
-echo ".cursor/rules/" >> .git/info/exclude
+
+# Submodule として追加
+git submodule add https://github.com/nobunosuke/cursor-rules.git .cursor/rules
+
+# コミット
+git add .gitmodules .cursor/rules
+git commit -m "feat: Cursor共有ルールをSubmoduleとして追加"
 ```
 
 **ポイント:**
-- `.git/info/exclude` を使うことで、ローカルで管理しつつリモートにはプッシュしない
-- チームメンバーには影響なし
-- 個人での使用に最適
+- `.cursor/rules/` は Submodule で一元管理（読み取り専用）
+- `.cursor/tasks/` は通常のファイルとして管理
+- 更新は `git submodule update --remote` で簡単
+- 個人利用にもチーム開発にも対応
 
-より高度な管理（Git Submodule など）は [SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md) を参照。
+詳細な手順とトラブルシューティングは [SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md) を参照。
 
 ## 参考資料
 
