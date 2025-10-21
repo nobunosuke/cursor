@@ -7,38 +7,16 @@
 ### `main` ブランチ（開発用）
 
 - **用途**: 開発のベースブランチ
+- **含まれるもの**: `.cursor/rules/`（ルールファイル）、`.cursor/tasks/`（タスクファイル）、README、GitHub Actions など
 - **運用**: 
   - feature ブランチはここから分岐
   - GitHub のデフォルトブランチ
   - clone すると開発環境が手に入る
 
-**ディレクトリ構成:**
-```
-main/
-  .cursor/
-    rules/              # Cursor ルールファイル（通常のディレクトリ）
-      cursor-tasks.mdc
-      global.mdc
-      git/
-        commit.mdc
-        issue.mdc
-        pr.mdc
-        worktree.mdc
-    tasks/              # タスクファイル（開発用）
-      CHORE-37_branch-strategy.md
-      ...
-  .github/
-    workflows/
-      sync-production.yml  # 自動同期ワークフロー
-  docs/
-    branch-strategy.md  # このファイル
-  README.md             # cursor-workspace の README
-  SETUP_SHARED_RULES.md
-```
-
 ### `production` ブランチ（公開用）
 
 - **用途**: cursor-rules として公開・配布
+- **含まれるもの**: `rules/`（main の `.cursor/rules/` と同期）、README.md、LICENSE
 - **特徴**:
   - orphan ブランチ（`main` とは完全に独立した履歴）
   - Git タグでバージョン管理（`v1.0.0`, `v1.1.0` など）
@@ -47,7 +25,7 @@ main/
 **ディレクトリ構成:**
 ```
 production/
-  rules/                # main の .cursor/rules/ と同期
+  rules/
     cursor-tasks.mdc
     global.mdc
     git/
@@ -55,9 +33,11 @@ production/
       issue.mdc
       pr.mdc
       worktree.mdc
-  README.md             # cursor-rules 用の README
+  README.md
   LICENSE
 ```
+
+> **Note**: production ブランチの README.md と LICENSE は、配布先での使い方説明と法的保護のために必要です。
 
 ## ブランチ構成図（Git Graph）
 
@@ -147,48 +127,6 @@ GitHub Actions が以下を自動実行：
 1. **履歴の分離**: 開発用と公開用で完全に独立した履歴を持つ
 2. **軽量化**: production ブランチには公開に必要な最小限のファイルのみ
 3. **明確な役割分担**: 開発環境と配布物を明確に区別
-
-## 移行前（submodule 方式）との比較
-
-### 以前（submodule）
-
-```
-cursor-workspace/
-  .cursor/
-    rules/  → cursor-rules リポジトリへの参照（submodule）
-    tasks/
-```
-
-別リポジトリ cursor-rules:
-```
-cursor-rules/
-  rules/
-  README.md
-  LICENSE
-```
-
-**問題点:**
-- 2つのリポジトリを管理する必要がある
-- submodule の更新が煩雑
-
-### 現在（orphan ブランチ）
-
-```
-main ブランチ:
-  .cursor/
-    rules/  → 通常のディレクトリとして直接管理
-    tasks/
-
-production ブランチ (orphan):
-  rules/  → main の .cursor/rules/ と同期
-  README.md
-  LICENSE
-```
-
-**利点:**
-- 1つのリポジトリで完結
-- GitHub Actions で自動同期
-- 開発中のタスクファイルも Git 管理可能
 
 ## 参考資料
 
