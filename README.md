@@ -238,7 +238,7 @@ git commit -m "feat: Cursor共有ルールを追加"
 - **main**: 開発用（`.cursor/rules/` + `.cursor/tasks/` + 開発ファイル）
 - **production**: 公開用（`rules/` のみ、タスクファイルなし）
 
-詳細は [`.cursor/rules/git/branch-strategy.mdc`](.cursor/rules/git/branch-strategy.mdc) を参照。
+詳細は [`docs/branch-strategy.md`](docs/branch-strategy.md) を参照。
 
 詳細な手順とトラブルシューティングは [SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md) を参照。
 

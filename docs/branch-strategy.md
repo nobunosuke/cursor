@@ -7,28 +7,89 @@
 ### `main` ブランチ（開発用）
 
 - **用途**: 開発のベースブランチ
-- **含まれるファイル**: すべて
-  - `.cursor/rules/` - Cursor ルールファイル
-  - `.cursor/tasks/` - タスクファイル（開発用）
-  - `README.md` - cursor-workspace の README
-  - `SETUP_SHARED_RULES.md` - セットアップ手順
-  - `.github/workflows/` - CI/CD 設定
 - **運用**: 
   - feature ブランチはここから分岐
   - GitHub のデフォルトブランチ
   - clone すると開発環境が手に入る
 
+**ディレクトリ構成:**
+```
+main/
+  .cursor/
+    rules/              # Cursor ルールファイル（通常のディレクトリ）
+      cursor-tasks.mdc
+      global.mdc
+      git/
+        commit.mdc
+        issue.mdc
+        pr.mdc
+        worktree.mdc
+    tasks/              # タスクファイル（開発用）
+      CHORE-37_branch-strategy.md
+      ...
+  .github/
+    workflows/
+      sync-production.yml  # 自動同期ワークフロー
+  docs/
+    branch-strategy.md  # このファイル
+  README.md             # cursor-workspace の README
+  SETUP_SHARED_RULES.md
+```
+
 ### `production` ブランチ（公開用）
 
 - **用途**: cursor-rules として公開・配布
-- **含まれるファイル**: `.cursor/rules/` の内容のみ
-  - `rules/` - Cursor ルールファイル（通常のディレクトリとして配置）
-  - `README.md` - cursor-rules の README
-  - `LICENSE` - MIT ライセンス
 - **特徴**:
   - orphan ブランチ（`main` とは完全に独立した履歴）
   - Git タグでバージョン管理（`v1.0.0`, `v1.1.0` など）
   - タスクファイルや開発用ファイルは含まない
+
+**ディレクトリ構成:**
+```
+production/
+  rules/                # main の .cursor/rules/ と同期
+    cursor-tasks.mdc
+    global.mdc
+    git/
+      commit.mdc
+      issue.mdc
+      pr.mdc
+      worktree.mdc
+  README.md             # cursor-rules 用の README
+  LICENSE
+```
+
+## ブランチ構成図（Git Graph）
+
+```mermaid
+gitGraph
+    commit id: "initial commit"
+    branch production
+    checkout production
+    commit id: "public: rules only" tag: "v1.0.0"
+    
+    checkout main
+    commit id: "dev: rules + tasks + README"
+    
+    branch feat/42-new-rule
+    checkout feat/42-new-rule
+    commit id: "implement new rule"
+    commit id: "task completed"
+    
+    checkout main
+    merge feat/42-new-rule
+    commit id: "update rules" tag: "v1.1.0"
+    
+    checkout production
+    commit id: "sync rules from main v1.1.0" tag: "v1.1.0"
+    
+    checkout main
+    branch feat/43-workflow
+    commit id: "improve workflow"
+    
+    checkout main
+    merge feat/43-workflow
+```
 
 ## ワークフロー
 
@@ -63,13 +124,14 @@ git tag v1.1.0
 git push origin v1.1.0
 
 # 2. GitHub Actions が自動的に production に同期
-# （.github/workflows/sync-production.yml）
 ```
 
 GitHub Actions が以下を自動実行：
 1. `.cursor/rules/` の内容を production ブランチに同期
 2. production ブランチで同じタグ（`v1.1.0`）を作成
 3. GitHub Release を作成
+
+詳細: [`.github/workflows/sync-production.yml`](../.github/workflows/sync-production.yml)
 
 ## ブランチ戦略の背景
 
@@ -85,92 +147,6 @@ GitHub Actions が以下を自動実行：
 1. **履歴の分離**: 開発用と公開用で完全に独立した履歴を持つ
 2. **軽量化**: production ブランチには公開に必要な最小限のファイルのみ
 3. **明確な役割分担**: 開発環境と配布物を明確に区別
-
-## GitHub Actions ワークフロー
-
-`.github/workflows/sync-production.yml`:
-
-```yaml
-name: Sync to production
-
-on:
-  push:
-    tags:
-      - 'v*'
-
-jobs:
-  sync:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      
-      - name: Sync .cursor/rules/ to production
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          
-          git checkout production
-          git rm -rf rules/
-          git checkout main -- .cursor/rules/
-          mv .cursor/rules rules
-          rm -rf .cursor
-          
-          git add .
-          git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
-          git tag ${GITHUB_REF_NAME}
-          git push origin production --tags
-```
-
-## ディレクトリ構成
-
-### main ブランチ
-
-```
-main/
-  .cursor/
-    rules/              # Cursor ルールファイル（通常のディレクトリ）
-      cursor-tasks.mdc
-      global.mdc
-      git/
-        commit.mdc
-        issue.mdc
-        pr.mdc
-        worktree.mdc
-        branch-strategy.mdc  # このファイル
-    tasks/              # タスクファイル（開発用）
-      FEAT-42_new-rule.md
-      ...
-  .github/
-    workflows/
-      sync-production.yml  # 自動同期ワークフロー
-  README.md             # cursor-workspace の README
-  SETUP_SHARED_RULES.md
-```
-
-### production ブランチ
-
-```
-production/
-  rules/                # .cursor/rules/ の内容
-    cursor-tasks.mdc
-    global.mdc
-    git/
-      commit.mdc
-      issue.mdc
-      pr.mdc
-      worktree.mdc
-      branch-strategy.mdc
-  README.md             # cursor-rules の README
-  LICENSE
-```
-
-## 注意事項
-
-- production ブランチには直接コミットしない（GitHub Actions で自動同期）
-- タグは main ブランチで作成する
-- production ブランチのタグは GitHub Actions が自動作成
 
 ## 移行前（submodule 方式）との比較
 
