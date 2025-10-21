@@ -5,14 +5,22 @@ Cursor環境でのイシュー駆動開発とタスク管理のための共有�
 ## 📦 クイックスタート
 
 ```bash
-# プロジェクトに追加
-git submodule add https://github.com/horinoburo/cursor-rules.git .cursor/rules
+# プロジェクトのルートディレクトリで実行
+cd /path/to/your-project
 
-# 最新版に更新
-git submodule update --remote .cursor/rules
+# production ブランチから .cursor/rules/ を取得
+git clone -b production --single-branch --depth 1 \
+  https://github.com/nobunosuke/cursor-rules.git .cursor/rules-temp
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 
-# clone後に初期化
-git submodule update --init --recursive
+# タスクディレクトリを作成（任意）
+mkdir -p .cursor/tasks
+
+# コミット
+git add .cursor/
+git commit -m "feat: Cursor共有ルールを追加"
+git push
 ```
 
 ## 📚 含まれるルール
@@ -35,68 +43,50 @@ git submodule update --init --recursive
 - **worktree統合**: 複数イシューの並列開発をサポート
 - **AI協調**: Cursorエージェントが自動でタスクファイルを更新
 
-## 🚀 使い方
+## 🔄 ルールの更新方法
 
-### 1. プロジェクトに追加
-
-```bash
-cd /path/to/your-project
-git submodule add https://github.com/horinoburo/cursor-rules.git .cursor/rules
-mkdir -p .cursor/tasks
-git commit -m "feat: Cursor共有ルールを追加"
-```
-
-### 2. 開発フロー
-
-1. GitHubでイシュー作成（例: #42）
-2. worktreeでブランチ作成
-   ```bash
-   git worktree add ../worktrees/feat-42-feature -b feat/42-feature main
-   cd ../worktrees/feat-42-feature
-   git submodule update --init  # 初回のみ
-   ```
-3. Cursorで開いて開発開始
-   - AIがタスクファイル（`FEAT-42_feature.md`）を作成・更新
-   - イシュー番号でブランチとタスクファイルが自動連携
-
-### 3. ルールを更新
+### 最新版に更新
 
 ```bash
-# 最新版を取得
-git submodule update --remote .cursor/rules
+# 現在の .cursor/rules/ を削除
+rm -rf .cursor/rules
+
+# production ブランチの最新版を取得
+git clone -b production --single-branch --depth 1 \
+  https://github.com/nobunosuke/cursor-rules.git .cursor/rules-temp
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 
 # 変更をコミット
 git add .cursor/rules
-git commit -m "chore: Cursor共有ルールを更新"
+git commit -m "chore: Cursor共有ルールを最新版に更新"
+git push
 ```
 
-## 🔧 よく使うコマンド
+### 特定のバージョンに固定
 
 ```bash
-# Submodule の状態確認
-git submodule status
+# 特定のタグをチェックアウト
+git clone -b production --single-branch \
+  https://github.com/nobunosuke/cursor-rules.git .cursor/rules-temp
+cd .cursor/rules-temp
+git checkout v1.0.0  # 特定のタグを指定
+cd ..
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 
-# Submodule を特定バージョンに固定
-cd .cursor/rules
-git checkout v1.0.0
-cd ../..
+# 変更をコミット
 git add .cursor/rules
-git commit -m "chore: ルールをv1.0.0に固定"
-
-# worktree一覧
-git worktree list
-
-# worktree削除
-git worktree remove ../worktrees/feat-42-feature
+git commit -m "chore: Cursor共有ルールをv1.0.0に固定"
+git push
 ```
 
 ## 📁 ディレクトリ構成
 
 ```
 your-project/
-  .gitmodules              # Submodule設定
   .cursor/
-    rules/                 # このリポジトリ（Submodule）
+    rules/                 # このリポジトリから取得
       global.mdc
       cursor-tasks.mdc
       git/
@@ -109,9 +99,14 @@ your-project/
       FEAT-42_feature.md
 ```
 
-## 🤝 Contributing
+## 🔗 詳細情報
 
-個人用ですが、改善案があれば Issue か PR をどうぞ。
+このリポジトリは **production ブランチ**（orphan ブランチ）で公開されています。
+
+- 開発用ブランチ（main）: `.cursor/rules/` + `.cursor/tasks/` + 開発ファイル
+- 公開用ブランチ（production）: `rules/` のみ（タスクファイルなし）
+
+タグでバージョン管理（`v1.0.0`, `v1.1.0` など）しています。
 
 ## 📄 License
 
