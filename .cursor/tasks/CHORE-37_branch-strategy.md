@@ -112,11 +112,15 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 
 1. **ブランチ構成**
    - `main`: 開発用（すべてのファイルを含む）
-   - `production`: 公開用（`.cursor/rules/` のみ、orphan ブランチ）
+   - `production`: 公開用（`rules/`, `README.md`, `LICENSE` のみ、orphan ブランチ）
 
 2. **GitHub Actions**
    - `main` で `v*` タグ作成時に自動で `production` に同期
    - ワークフロー名: `.github/workflows/sync-production.yml`
+   - 同期内容:
+     - `.cursor/rules/` → `rules/`
+     - `production-README.md` → `README.md`
+     - `LICENSE` → `LICENSE`
 
 3. **submodule 廃止**
    - `.cursor/rules/` を通常のディレクトリとして管理
@@ -124,6 +128,11 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 
 4. **バージョン管理**
    - `production` ブランチで Git タグを付与（`v1.0.0` など）
+
+5. **production 用ファイルの配置**
+   - main ブランチのルートに `production-README.md` と `LICENSE` を配置
+   - GitHub Actions で production に同期時にリネーム・コピー
+   - 理由: main と production で同じフォルダ構成を維持し、混乱を避ける
 
 ### アーキテクチャ
 
@@ -187,40 +196,21 @@ sequenceDiagram
 **main ブランチ:**
 ```
 main/
-  .cursor/
-    rules/         # ルールファイル（通常のディレクトリとして管理）
-      global.mdc
-      cursor-tasks.mdc
-      git/
-        commit.mdc
-        issue.mdc
-        pr.mdc
-        worktree.mdc
-        branch-strategy.mdc  # 新規作成
-    tasks/         # タスクファイル（開発用、本番には含めない）
-      CHORE-37_branch-strategy.md
-      ...
-  .github/
-    workflows/
-      sync-production.yml  # 新規作成
-  README.md
-  SETUP_SHARED_RULES.md  # 更新（submodule から orphan ブランチに変更）
+  .cursor/rules/            # ルールファイル
+  .cursor/tasks/            # タスクファイル（production 除外）
+  .github/workflows/        # CI/CD
+  docs/                     # ドキュメント
+  README.md                 # 開発者向け
+  production-README.md      # 利用者向け（production に同期）
+  LICENSE
 ```
 
 **production ブランチ:**
 ```
 production/
-  rules/           # .cursor/rules/ の内容をコピー
-    global.mdc
-    cursor-tasks.mdc
-    git/
-      commit.mdc
-      issue.mdc
-      pr.mdc
-      worktree.mdc
-      branch-strategy.mdc
-  README.md        # cursor-rules 用の README
-  LICENSE
+  rules/        # main の .cursor/rules/ と同期
+  README.md     # main の production-README.md と同期
+  LICENSE       # main と共有
 ```
 
 ### データフロー
@@ -273,15 +263,21 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Sync .cursor/rules/ to production
+      - name: Sync to production
         run: |
           git checkout production
-          git checkout main -- .cursor/rules/
-          mv .cursor/rules/* .
-          git add .
-          git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
-          git tag ${GITHUB_REF_NAME}
-          git push origin production --tags
+          git rm -rf rules/ README.md LICENSE || true
+          git checkout ${GITHUB_REF_NAME} -- .cursor/rules/ production-README.md LICENSE
+          mv .cursor/rules rules
+          mv production-README.md README.md
+          rm -rf .cursor
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
+            git tag ${GITHUB_REF_NAME}
+            git push origin production --tags
+          fi
 ```
 
 ### その他
@@ -305,13 +301,16 @@ jobs:
 - `.cursor/tasks/CHORE-37_branch-strategy.md` - このタスクファイル ✅
 - `.cursor/tasks/ref/ref-CHORE-37_mermaid-diagrams.md` - Mermaid 図とシンタックスエラー調査 ✅
 - `.github/workflows/sync-production.yml` - GitHub Actions ワークフロー ✅
-- `.cursor/rules/git/branch-strategy.mdc` - ブランチ戦略のドキュメント ✅
+- `docs/branch-strategy.md` - ブランチ戦略のドキュメント ✅
+- `production-README.md` - production 用 README（利用者向け）✅
+- `LICENSE` - MIT ライセンス ✅
 - `.cursor/rules/cursor-tasks.mdc` - タスク管理ルール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/global.mdc` - グローバルルール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/git/commit.mdc` - コミットルール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/git/issue.mdc` - イシュールール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/git/pr.mdc` - PRルール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/git/worktree.mdc` - Worktree ルール（submodule から通常ディレクトリへ）✅
-- `README.md` - 更新予定
-- `SETUP_SHARED_RULES.md` - 更新予定（submodule → orphan ブランチ）
+- `.cursor/rules/git/merge-strategy.mdc` - マージ戦略ルール（submodule から通常ディレクトリへ）✅
+- `README.md` - 開発者向け README ✅
+- `SETUP_SHARED_RULES.md` - セットアップ手順（submodule → orphan ブランチ）✅
 

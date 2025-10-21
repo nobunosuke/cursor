@@ -23,30 +23,35 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Sync .cursor/rules/ to production
+      - name: Sync to production
         run: |
           # production ブランチに切り替え
           git checkout production
           
-          # 既存の rules/ を削除
-          git rm -rf rules/ || true
+          # 既存のファイルを削除
+          git rm -rf rules/ README.md LICENSE || true
           
-          # main ブランチから .cursor/rules/ をチェックアウト
-          git checkout main -- .cursor/rules/
+          # main ブランチから必要なファイルをチェックアウト
+          git checkout ${GITHUB_REF_NAME} -- .cursor/rules/ production-README.md LICENSE
           
-          # .cursor/rules/ を rules/ に移動
+          # ファイルを適切な場所に配置
           mv .cursor/rules rules
+          mv production-README.md README.md
           rm -rf .cursor
           
-          # 変更をコミット
-          git add .
-          git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
-          
-          # タグを作成
-          git tag ${GITHUB_REF_NAME} || echo "Tag already exists"
-          
-          # production ブランチとタグをプッシュ
-          git push origin production --tags
+          # 変更があるかチェック
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            # 変更をコミット
+            git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
+            
+            # タグを作成
+            git tag ${GITHUB_REF_NAME} || echo "Tag already exists"
+            
+            # production ブランチとタグをプッシュ
+            git push origin production --tags
+          fi
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
