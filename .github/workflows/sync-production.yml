@@ -25,14 +25,17 @@ jobs:
       
       - name: Sync .cursor/rules/ to production
         run: |
+          # タグが指すコミットから .cursor/rules/ を取得
+          TAG_COMMIT=$(git rev-parse ${GITHUB_REF_NAME})
+          
           # production ブランチに切り替え
           git checkout production
           
           # 既存の rules/ を削除
           git rm -rf rules/ || true
           
-          # main ブランチから .cursor/rules/ をチェックアウト
-          git checkout main -- .cursor/rules/
+          # タグが指すコミットから .cursor/rules/ をチェックアウト
+          git checkout ${TAG_COMMIT} -- .cursor/rules/
           
           # .cursor/rules/ を rules/ に移動
           mv .cursor/rules rules
@@ -42,11 +45,13 @@ jobs:
           git add .
           git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
           
-          # タグを作成
-          git tag ${GITHUB_REF_NAME} || echo "Tag already exists"
+          # タグを作成（既存の場合は削除して再作成）
+          git tag -d ${GITHUB_REF_NAME} 2>/dev/null || true
+          git tag ${GITHUB_REF_NAME}
           
           # production ブランチとタグをプッシュ
-          git push origin production --tags
+          git push origin production --force
+          git push origin ${GITHUB_REF_NAME} --force
       
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
