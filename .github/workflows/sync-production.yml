@@ -1,0 +1,78 @@
+name: Sync to production
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Sync .cursor/rules/ to production
+        run: |
+          # production ブランチに切り替え
+          git checkout production
+          
+          # 既存の rules/ を削除
+          git rm -rf rules/ || true
+          
+          # main ブランチから .cursor/rules/ をチェックアウト
+          git checkout main -- .cursor/rules/
+          
+          # .cursor/rules/ を rules/ に移動
+          mv .cursor/rules rules
+          rm -rf .cursor
+          
+          # 変更をコミット
+          git add .
+          git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
+          
+          # タグを作成
+          git tag ${GITHUB_REF_NAME} || echo "Tag already exists"
+          
+          # production ブランチとタグをプッシュ
+          git push origin production --tags
+      
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: cursor-rules ${{ github.ref_name }}
+          body: |
+            ## cursor-rules ${{ github.ref_name }}
+            
+            このリリースには、Cursor 共有ルールファイルが含まれています。
+            
+            ### 使用方法
+            
+            ```bash
+            # プロジェクトのルートディレクトリで実行
+            git clone -b production --single-branch https://github.com/${{ github.repository }}.git .cursor/rules
+            ```
+            
+            または、手動でダウンロード：
+            
+            1. `rules/` ディレクトリの内容を `.cursor/rules/` にコピー
+            2. Cursor を再起動
+            
+            詳細は [README.md](https://github.com/${{ github.repository }}/blob/production/README.md) を参照してください。
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

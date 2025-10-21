@@ -1,0 +1,51 @@
+---
+description: プロジェクト全体の基本ルール
+alwaysApply: true
+---
+
+# プロジェクト管理
+
+## イシュー駆動開発
+
+このプロジェクトでは、GitHubイシュー駆動開発を採用しています。すべての開発はGitHubイシューから始まり、各イシューに対応するブランチとタスクファイルで進捗を管理します。
+
+### 関連ルール
+
+- @cursor-tasks.mdc - タスク管理の基本ルール（命名規則、ファイル構造、開発フロー）
+- @git/issue.mdc - イシュー作成後のAI支援（ブランチ・description・タスクファイル作成）
+- @git/worktree.mdc - git worktreeによる並列開発（複数イシューの同時作業）
+- @git/commit.mdc - コミットメッセージ規約とAI支援
+
+### クイックリファレンス
+
+#### イシュー・ブランチ・タスクファイルの対応
+- GitHubイシュー: `#1`
+- ブランチ: `docs/1-issue-driven`
+- タスクファイル: `.cursor/tasks/DOCS-1_issue-driven.md`
+
+すべてイシュー番号 `1` で紐づいています。
+
+#### 開発フロー
+
+1. **GitHubでイシューを作成**
+2. **worktree でブランチを作成**（AI or 手動）
+   - AI: Cursorで「イシュー #42: ○○」と伝える → AIが worktree として作成
+   - 手動: `git worktree add ../worktrees/feat-42-user-auth -b feat/42-user-auth main`
+   - 詳細は @git/worktree.mdc を参照
+3. **イシューのdescriptionを作成**（AI or 手動）
+   - AI: AIが生成 → GitHub UIにコピペ
+   - 手動: GitHub UIで直接記述
+4. **タスクファイルで開発を進める**（AI支援）
+   - タスクファイルが存在しない場合、AIが作成を提案
+   - タスクを進めながらチェックリストを自動更新
+5. **完了したらコミット・プッシュ**
+   - すべてのタスク完了でAIが提案
+
+#### 高度な使い方: 並列開発
+
+**git worktree**を使用すると、複数のイシューを同時に作業できます：
+- 同じリポジトリの異なるブランチを複数のディレクトリで開く
+- 各ディレクトリで独立したCursorセッションを起動
+- AIに複数のイシューを並列実装させることが可能
+
+詳細は @git/worktree.mdc を参照。

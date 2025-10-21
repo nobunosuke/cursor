@@ -204,29 +204,41 @@ git worktree remove ../worktrees/feat-42-feature-a
 
 ## 他のプロジェクトで共有ルールを使う
 
-このリポジトリ（`cursor-workspace`）の `.cursor/rules/` は、専用リポジトリ `cursor-rules` として切り出され、**Git Submodule** で複数のプロジェクトから使用できます。
+このリポジトリの `.cursor/rules/` は、**production ブランチ**で公開されており、複数のプロジェクトから使用できます。
 
 詳しくは **[SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md)** を参照してください。
 
-### クイックスタート（Git Submodule 方式）
+### クイックスタート
 
 ```bash
 # 他のプロジェクトで実行
 cd /path/to/your-project
 
-# Submodule として追加
-git submodule add https://github.com/nobunosuke/cursor-rules.git .cursor/rules
+# production ブランチから .cursor/rules/ をクローン
+git clone -b production --single-branch --depth 1 \
+  https://github.com/nobunosuke/cursor-workspace.git .cursor/rules-temp
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 
 # コミット
-git add .gitmodules .cursor/rules
-git commit -m "feat: Cursor共有ルールをSubmoduleとして追加"
+git add .cursor/rules
+git commit -m "feat: Cursor共有ルールを追加"
 ```
 
 **ポイント:**
-- `.cursor/rules/` は Submodule で一元管理（読み取り専用）
-- `.cursor/tasks/` は通常のファイルとして管理
-- 更新は `git submodule update --remote` で簡単
+- production ブランチには `.cursor/rules/` の内容のみが含まれる（タスクファイルなし）
+- タグでバージョン管理（`v1.0.0`, `v1.1.0` など）
+- 自分のプロジェクトでは `.cursor/tasks/` でタスク管理が可能
 - 個人利用にもチーム開発にも対応
+
+### ブランチ構成
+
+このリポジトリは2つのブランチで管理されています：
+
+- **main**: 開発用（`.cursor/rules/` + `.cursor/tasks/` + 開発ファイル）
+- **production**: 公開用（`rules/` のみ、タスクファイルなし）
+
+詳細は [`docs/branch-strategy.md`](docs/branch-strategy.md) を参照。
 
 詳細な手順とトラブルシューティングは [SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md) を参照。
 

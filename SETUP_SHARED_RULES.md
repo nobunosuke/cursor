@@ -1,48 +1,53 @@
-# 共有ルールのセットアップ手順（Git Submodule 方式）
+# 共有ルールのセットアップ手順（Orphan ブランチ方式）
 
-このドキュメントでは、`.cursor/rules/` を Git Submodule として他のプロジェクトで使用するための手順を説明します。
+このドキュメントでは、`.cursor/rules/` を他のプロジェクトで使用するための手順を説明します。
 
 ## 概要
 
-このリポジトリ（`cursor-workspace`）の `.cursor/rules/` を、専用リポジトリ（`cursor-rules`）に切り出し、Git Submodule として複数のプロジェクトで共有します。
+このリポジトリの `.cursor/rules/` は、**production ブランチ**（orphan ブランチ）で公開されており、複数のプロジェクトから利用できます。
 
-### Git Submodule 方式のメリット
+### Orphan ブランチ方式のメリット
 
-- ルールの変更は専用リポジトリでのみ行う（厳格な一元管理）
-- `git submodule update --remote` で簡単に最新版を取得
-- 特定のコミットに固定可能（バージョン管理）
-- worktree との相性が良い（シンボリックリンク不要）
-- 個人利用にもチーム開発にも対応
+- 1つのリポジトリで開発用と公開用を管理（シンプル）
+- タグでバージョン管理（`v1.0.0`, `v1.1.0` など）
+- GitHub Actions で自動同期（main → production）
+- 開発中のタスクファイルも Git 管理可能
+- 公開用ブランチには最小限のファイルのみ含まれる
 
 ### アーキテクチャ
 
 ```
-このリポジトリ（cursor-workspace）
+cursor-workspace リポジトリ
+
+main ブランチ（開発用）:
   .cursor/
-    rules/      # ← これを切り出す
-    tasks/
+    rules/              # Cursor ルールファイル（通常のディレクトリ）
+      cursor-tasks.mdc
+      global.mdc
+      git/
+        commit.mdc
+        ...
+    tasks/              # タスクファイル（開発用）
   README.md
   SETUP_SHARED_RULES.md
+  .github/workflows/
+    sync-production.yml # 自動同期ワークフロー
 
-      ↓ (切り出して専用リポジトリを作成)
-
-cursor-rules リポジトリ（新規作成・公開）
-  rules/
-    global.mdc
+production ブランチ（公開用、orphan）:
+  rules/                # main の .cursor/rules/ と同期
     cursor-tasks.mdc
+    global.mdc
     git/
       commit.mdc
-      issue.mdc
-      pr.mdc
-      worktree.mdc
-  README.md
+      ...
+  README.md             # cursor-rules 用の README
+  LICENSE
 
-      ↓ (git submodule add)
+      ↓ (プロジェクトで使用)
 
 プロジェクトA/
-  .gitmodules           # Submodule の設定
   .cursor/
-    rules/              # Submodule（cursor-rulesへの参照）
+    rules/              # production ブランチから取得
     tasks/              # プロジェクトAのタスクファイル
 ```
 
@@ -50,57 +55,52 @@ cursor-rules リポジトリ（新規作成・公開）
 
 ## セットアップ手順
 
-### 前提条件
-
-専用リポジトリ `cursor-rules` (https://github.com/nobunosuke/cursor-rules) が作成済みであることを前提とします。
-
-### ステップ1: プロジェクトに Submodule を追加
+### ステップ1: production ブランチから .cursor/rules/ を取得
 
 ```bash
 # プロジェクトのルートディレクトリで実行
 cd /path/to/your-project
 
-# Submodule として追加
-git submodule add https://github.com/nobunosuke/cursor-rules.git .cursor/rules
+# production ブランチをクローン
+git clone -b production --single-branch --depth 1 \
+  https://github.com/nobunosuke/cursor-workspace.git .cursor/rules-temp
+
+# rules/ ディレクトリを .cursor/rules/ に移動
+mkdir -p .cursor
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 
 # 結果を確認
-git status
-# → 以下が表示される:
-#    new file:   .gitmodules
-#    new file:   .cursor/rules
+ls -la .cursor/rules/
+# → cursor-tasks.mdc, global.mdc, git/ などが表示される
 ```
 
-### ステップ2: .cursor/tasks/ ディレクトリを確認
+### ステップ2: .cursor/tasks/ ディレクトリを作成（任意）
 
 ```bash
-# 既存のタスクファイルがある場合はそのまま使用
-ls -la .cursor/
-# → rules/  (Submodule)
-# → tasks/  (既存または新規作成)
-
-# ない場合は作成
+# タスク管理を使う場合は作成
 mkdir -p .cursor/tasks
+
+# タスクファイルのサンプルを作成
+cat > .cursor/tasks/README.md << 'EOF'
+# タスクファイル
+
+このディレクトリには、GitHub イシューに対応するタスクファイルを配置します。
+
+詳細は `.cursor/rules/cursor-tasks.mdc` を参照してください。
+EOF
 ```
 
 ### ステップ3: コミット
 
 ```bash
 # 変更をコミット
-git add .gitmodules .cursor/rules
-git commit -m "feat: Cursor共有ルールをSubmoduleとして追加"
+git add .cursor/
+git commit -m "feat: Cursor共有ルールを追加"
 
 # プッシュ
 git push origin <branch-name>
 ```
-
-**補足**: `.cursor/rules` をコミットしていますが、実ファイルは含まれません。
-
-含まれるもの：
-- 「cursor-rules リポジトリの特定のコミット（abc123 など）を参照する」という情報だけ
-
-これにより：
-- プロジェクトAのリポジトリサイズは増えない
-- ルールファイルの実体は cursor-rules リポジトリで一元管理される
 
 ### ステップ4: 動作確認
 
@@ -114,18 +114,26 @@ cursor .
 
 ---
 
-## Submodule の更新方法
+## ルールの更新方法
 
-### ケース1: cursor-rules が更新されたとき
+### ケース1: 最新版に更新したいとき
 
 ```bash
 # プロジェクトAで最新版を取得
 cd /path/to/project-a
-git submodule update --remote .cursor/rules
+
+# 現在の .cursor/rules/ を削除
+rm -rf .cursor/rules
+
+# production ブランチの最新版を取得
+git clone -b production --single-branch --depth 1 \
+  https://github.com/nobunosuke/cursor-workspace.git .cursor/rules-temp
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 
 # 変更を確認
 git status
-# → .cursor/rules に変更があることが表示される
+# → .cursor/rules/ に変更があることが表示される
 
 # 新しいバージョンをコミット
 git add .cursor/rules
@@ -133,21 +141,23 @@ git commit -m "chore: Cursor共有ルールを最新版に更新"
 git push
 ```
 
-`git submodule update --remote` で cursor-rules の最新版を取得すると、プロジェクトAは「新しいコミットハッシュを参照する」というコミットを作成します。実ファイルはプロジェクトAのリポジトリに含まれません。
-
 ### ケース2: 特定のバージョンに固定したいとき
 
 ```bash
-# Submodule ディレクトリに移動
-cd .cursor/rules
+# プロジェクトAで特定バージョンを取得
+cd /path/to/project-a
 
-# 特定のコミットをチェックアウト
-git checkout v1.0.0  # タグを指定
-# または
-git checkout abc123  # コミットハッシュを指定
+# 現在の .cursor/rules/ を削除
+rm -rf .cursor/rules
 
-# プロジェクトAに戻る
-cd ../..
+# 特定のタグをチェックアウト
+git clone -b production --single-branch --depth 1 \
+  https://github.com/nobunosuke/cursor-workspace.git .cursor/rules-temp
+cd .cursor/rules-temp
+git checkout v1.0.0  # 特定のタグを指定
+cd ..
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 
 # 変更をコミット
 git add .cursor/rules
@@ -160,14 +170,18 @@ git push
 ## 基本コマンド
 
 ```bash
-# Submodule を追加
-git submodule add <URL> .cursor/rules
+# production ブランチから取得
+git clone -b production --single-branch --depth 1 \
+  https://github.com/nobunosuke/cursor-workspace.git .cursor/rules-temp
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 
-# Submodule を初期化（clone 後）
-git submodule update --init --recursive
-
-# Submodule を最新版に更新
-git submodule update --remote .cursor/rules
+# 特定のバージョンを指定
+git clone -b production --single-branch \
+  https://github.com/nobunosuke/cursor-workspace.git .cursor/rules-temp
+cd .cursor/rules-temp
+git checkout v1.0.0
+cd ..
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
 ```
-
-**重要**: worktree は Submodule の参照を自動的に引き継ぎます。シンボリックリンク不要！
