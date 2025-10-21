@@ -11,16 +11,19 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 - [x] `main` ブランチから submodule を削除し、`.cursor/rules/` を直接管理
 - [x] GitHub Actions ワークフロー作成（タグ作成時の自動同期）
 - [x] ブランチ戦略のドキュメント作成（`.cursor/rules/git/branch-strategy.mdc`）
+- [x] README.md を更新（新しいブランチ戦略を反映）
+- [x] SETUP_SHARED_RULES.md を更新（orphan ブランチ方式に変更）
 
 ## In Progress Tasks
 
-- [ ] README.md を更新（新しいブランチ戦略を反映）
+なし
 
 ## Future Tasks
 
 - [ ] 動作確認: タグ作成 → production への自動同期
 - [ ] 既存の worktree で問題がないか確認
 - [ ] cursor-rules リポジトリを archive または削除（統合完了後）
+- [ ] main ブランチにマージ後、production ブランチを production に同期
 
 ## Implementation Plan
 
