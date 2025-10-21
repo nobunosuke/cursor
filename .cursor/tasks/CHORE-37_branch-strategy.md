@@ -7,12 +7,18 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 - [x] ネット調査: ブランチ戦略のベストプラクティスを確認
 - [x] タスクファイル作成
 - [x] Mermaid 図をファイルに出力（シンタックスエラーの原因を調査・修正）
-- [x] orphan ブランチ `production` を作成
+- [x] orphan ブランチ `production` を作成（v1.0.0 タグ付き）
 - [x] `main` ブランチから submodule を削除し、`.cursor/rules/` を直接管理
 - [x] GitHub Actions ワークフロー作成（タグ作成時の自動同期）
-- [x] ブランチ戦略のドキュメント作成（`.cursor/rules/git/branch-strategy.mdc`）
+- [x] ブランチ戦略のドキュメント作成（`docs/branch-strategy.md`）
 - [x] README.md を更新（新しいブランチ戦略を反映）
 - [x] SETUP_SHARED_RULES.md を更新（orphan ブランチ方式に変更）
+- [x] PR 作成とマージ
+- [x] production ブランチをリモートにプッシュ
+- [x] v1.1.0 タグ作成と GitHub Actions の動作確認（成功 ✅）
+- [x] GitHub Actions ワークフローのデバッグと修正
+  - タグから .cursor/rules/ を取得するように修正
+  - 変更がない場合はコミットをスキップ
 
 ## In Progress Tasks
 
@@ -20,19 +26,34 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 
 ## Future Tasks
 
-- [ ] 動作確認: タグ作成 → production への自動同期
-- [ ] 既存の worktree で問題がないか確認
-- [ ] cursor-rules リポジトリを archive または削除（統合完了後）
-- [ ] main ブランチにマージ後、production ブランチを production に同期
+- [ ] 旧 cursor-rules リポジトリを archive または削除
+- [ ] cursor-workspace リポジトリの名前を cursor-rules に変更
+- [ ] 既存プロジェクトで production ブランチから取得できることを確認
 
 ## Implementation Plan
 
 ### 目標
 
-1. **cursor-workspace と cursor-rules を1つのリポジトリに統合**
-2. **開発用ブランチ（main）と公開用ブランチ（production）で管理**
-3. **GitHub Actions でタグ作成時に自動同期**
-4. **submodule を完全に廃止**
+1. ✅ **cursor-workspace と cursor-rules を1つのリポジトリに統合**
+2. ✅ **開発用ブランチ（main）と公開用ブランチ（production）で管理**
+3. ✅ **GitHub Actions でタグ作成時に自動同期**
+4. ✅ **submodule を完全に廃止**
+
+### 完了した実装の概要
+
+**ブランチ構成:**
+- `main`: 開発用（.cursor/rules/ + .cursor/tasks/ + docs/ など）
+- `production`: 公開用（rules/ のみ、orphan ブランチ）
+
+**GitHub Actions ワークフロー:**
+- タグ作成時（`v*`）に自動で production に同期
+- .cursor/rules/ を production の rules/ にコピー
+- production ブランチに同じタグを作成
+- GitHub Release を自動作成
+
+**動作確認:**
+- v1.1.0 タグ作成 → production に同期成功 ✅
+- GitHub Release 作成成功 ✅
 
 ### 要件・制約事項
 
@@ -91,11 +112,15 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 
 1. **ブランチ構成**
    - `main`: 開発用（すべてのファイルを含む）
-   - `production`: 公開用（`.cursor/rules/` のみ、orphan ブランチ）
+   - `production`: 公開用（`rules/`, `README.md`, `LICENSE` のみ、orphan ブランチ）
 
 2. **GitHub Actions**
    - `main` で `v*` タグ作成時に自動で `production` に同期
    - ワークフロー名: `.github/workflows/sync-production.yml`
+   - 同期内容:
+     - `.cursor/rules/` → `rules/`
+     - `production-README.md` → `README.md`
+     - `LICENSE` → `LICENSE`
 
 3. **submodule 廃止**
    - `.cursor/rules/` を通常のディレクトリとして管理
@@ -103,6 +128,11 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 
 4. **バージョン管理**
    - `production` ブランチで Git タグを付与（`v1.0.0` など）
+
+5. **production 用ファイルの配置**
+   - main ブランチのルートに `production-README.md` と `LICENSE` を配置
+   - GitHub Actions で production に同期時にリネーム・コピー
+   - 理由: main と production で同じフォルダ構成を維持し、混乱を避ける
 
 ### アーキテクチャ
 
@@ -166,40 +196,21 @@ sequenceDiagram
 **main ブランチ:**
 ```
 main/
-  .cursor/
-    rules/         # ルールファイル（通常のディレクトリとして管理）
-      global.mdc
-      cursor-tasks.mdc
-      git/
-        commit.mdc
-        issue.mdc
-        pr.mdc
-        worktree.mdc
-        branch-strategy.mdc  # 新規作成
-    tasks/         # タスクファイル（開発用、本番には含めない）
-      CHORE-37_branch-strategy.md
-      ...
-  .github/
-    workflows/
-      sync-production.yml  # 新規作成
-  README.md
-  SETUP_SHARED_RULES.md  # 更新（submodule から orphan ブランチに変更）
+  .cursor/rules/            # ルールファイル
+  .cursor/tasks/            # タスクファイル（production 除外）
+  .github/workflows/        # CI/CD
+  docs/                     # ドキュメント
+  README.md                 # 開発者向け
+  production-README.md      # 利用者向け（production に同期）
+  LICENSE
 ```
 
 **production ブランチ:**
 ```
 production/
-  rules/           # .cursor/rules/ の内容をコピー
-    global.mdc
-    cursor-tasks.mdc
-    git/
-      commit.mdc
-      issue.mdc
-      pr.mdc
-      worktree.mdc
-      branch-strategy.mdc
-  README.md        # cursor-rules 用の README
-  LICENSE
+  rules/        # main の .cursor/rules/ と同期
+  README.md     # main の production-README.md と同期
+  LICENSE       # main と共有
 ```
 
 ### データフロー
@@ -252,15 +263,21 @@ jobs:
         with:
           fetch-depth: 0
       
-      - name: Sync .cursor/rules/ to production
+      - name: Sync to production
         run: |
           git checkout production
-          git checkout main -- .cursor/rules/
-          mv .cursor/rules/* .
-          git add .
-          git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
-          git tag ${GITHUB_REF_NAME}
-          git push origin production --tags
+          git rm -rf rules/ README.md LICENSE || true
+          git checkout ${GITHUB_REF_NAME} -- .cursor/rules/ production-README.md LICENSE
+          mv .cursor/rules rules
+          mv production-README.md README.md
+          rm -rf .cursor
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
+            git tag ${GITHUB_REF_NAME}
+            git push origin production --tags
+          fi
 ```
 
 ### その他
@@ -284,13 +301,16 @@ jobs:
 - `.cursor/tasks/CHORE-37_branch-strategy.md` - このタスクファイル ✅
 - `.cursor/tasks/ref/ref-CHORE-37_mermaid-diagrams.md` - Mermaid 図とシンタックスエラー調査 ✅
 - `.github/workflows/sync-production.yml` - GitHub Actions ワークフロー ✅
-- `.cursor/rules/git/branch-strategy.mdc` - ブランチ戦略のドキュメント ✅
+- `docs/branch-strategy.md` - ブランチ戦略のドキュメント ✅
+- `production-README.md` - production 用 README（利用者向け）✅
+- `LICENSE` - MIT ライセンス ✅
 - `.cursor/rules/cursor-tasks.mdc` - タスク管理ルール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/global.mdc` - グローバルルール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/git/commit.mdc` - コミットルール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/git/issue.mdc` - イシュールール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/git/pr.mdc` - PRルール（submodule から通常ディレクトリへ）✅
 - `.cursor/rules/git/worktree.mdc` - Worktree ルール（submodule から通常ディレクトリへ）✅
-- `README.md` - 更新予定
-- `SETUP_SHARED_RULES.md` - 更新予定（submodule → orphan ブランチ）
+- `.cursor/rules/git/merge-strategy.mdc` - マージ戦略ルール（submodule から通常ディレクトリへ）✅
+- `README.md` - 開発者向け README ✅
+- `SETUP_SHARED_RULES.md` - セットアップ手順（submodule → orphan ブランチ）✅
 

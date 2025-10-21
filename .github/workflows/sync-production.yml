@@ -23,7 +23,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
       
-      - name: Sync .cursor/rules/ to production
+      - name: Sync to production
         run: |
           # タグが指すコミットから .cursor/rules/ を取得
           TAG_COMMIT=$(git rev-parse ${GITHUB_REF_NAME})
@@ -31,14 +31,15 @@ jobs:
           # production ブランチに切り替え
           git checkout production
           
-          # 既存の rules/ を削除
-          git rm -rf rules/ || true
+          # 既存のファイルを削除
+          git rm -rf rules/ README.md LICENSE || true
           
-          # タグが指すコミットから .cursor/rules/ をチェックアウト
-          git checkout ${TAG_COMMIT} -- .cursor/rules/
+          # タグが指すコミットから必要なファイルをチェックアウト
+          git checkout ${TAG_COMMIT} -- .cursor/rules/ production-README.md LICENSE
           
-          # .cursor/rules/ を rules/ に移動
+          # ファイルを適切な場所に配置
           mv .cursor/rules rules
+          mv production-README.md README.md
           rm -rf .cursor
           
           # 変更をコミット（変更がある場合のみ）

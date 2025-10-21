@@ -13,6 +13,18 @@
   - GitHub のデフォルトブランチ
   - clone すると開発環境が手に入る
 
+**ディレクトリ構成:**
+```
+main/
+  .cursor/rules/           # ルールファイル
+  .cursor/tasks/           # タスクファイル（production には含まれない）
+  .github/workflows/       # CI/CD
+  docs/                    # ドキュメント
+  README.md                # 開発者向け
+  production-README.md     # 利用者向け（production に同期）
+  LICENSE
+```
+
 ### `production` ブランチ（公開用）
 
 - **用途**: cursor-rules として公開・配布
@@ -25,19 +37,12 @@
 **ディレクトリ構成:**
 ```
 production/
-  rules/
-    cursor-tasks.mdc
-    global.mdc
-    git/
-      commit.mdc
-      issue.mdc
-      pr.mdc
-      worktree.mdc
-  README.md
-  LICENSE
+  rules/        # main の .cursor/rules/ と同期
+  README.md     # main の production-README.md と同期
+  LICENSE       # main と共有
 ```
 
-> **Note**: production ブランチの README.md と LICENSE は、配布先での使い方説明と法的保護のために必要です。
+> **Note**: production ブランチのファイルは、GitHub Actions によって main から自動同期されます。
 
 ## ブランチ構成図（Git Graph）
 
@@ -107,9 +112,11 @@ git push origin v1.1.0
 ```
 
 GitHub Actions が以下を自動実行：
-1. `.cursor/rules/` の内容を production ブランチに同期
-2. production ブランチで同じタグ（`v1.1.0`）を作成
-3. GitHub Release を作成
+1. `.cursor/rules/` → `rules/` に同期
+2. `production-README.md` → `README.md` に同期
+3. `LICENSE` → `LICENSE` に同期
+4. production ブランチで同じタグ（`v1.1.0`）を作成
+5. GitHub Release を作成
 
 詳細: [`.github/workflows/sync-production.yml`](../.github/workflows/sync-production.yml)
 
