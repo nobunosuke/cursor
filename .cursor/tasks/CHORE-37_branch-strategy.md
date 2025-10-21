@@ -7,12 +7,18 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 - [x] ネット調査: ブランチ戦略のベストプラクティスを確認
 - [x] タスクファイル作成
 - [x] Mermaid 図をファイルに出力（シンタックスエラーの原因を調査・修正）
-- [x] orphan ブランチ `production` を作成
+- [x] orphan ブランチ `production` を作成（v1.0.0 タグ付き）
 - [x] `main` ブランチから submodule を削除し、`.cursor/rules/` を直接管理
 - [x] GitHub Actions ワークフロー作成（タグ作成時の自動同期）
-- [x] ブランチ戦略のドキュメント作成（`.cursor/rules/git/branch-strategy.mdc`）
+- [x] ブランチ戦略のドキュメント作成（`docs/branch-strategy.md`）
 - [x] README.md を更新（新しいブランチ戦略を反映）
 - [x] SETUP_SHARED_RULES.md を更新（orphan ブランチ方式に変更）
+- [x] PR 作成とマージ
+- [x] production ブランチをリモートにプッシュ
+- [x] v1.1.0 タグ作成と GitHub Actions の動作確認（成功 ✅）
+- [x] GitHub Actions ワークフローのデバッグと修正
+  - タグから .cursor/rules/ を取得するように修正
+  - 変更がない場合はコミットをスキップ
 
 ## In Progress Tasks
 
@@ -20,19 +26,34 @@ submodule を廃止し、1つのリポジトリで開発用ブランチと公開
 
 ## Future Tasks
 
-- [ ] 動作確認: タグ作成 → production への自動同期
-- [ ] 既存の worktree で問題がないか確認
-- [ ] cursor-rules リポジトリを archive または削除（統合完了後）
-- [ ] main ブランチにマージ後、production ブランチを production に同期
+- [ ] 旧 cursor-rules リポジトリを archive または削除
+- [ ] cursor-workspace リポジトリの名前を cursor-rules に変更
+- [ ] 既存プロジェクトで production ブランチから取得できることを確認
 
 ## Implementation Plan
 
 ### 目標
 
-1. **cursor-workspace と cursor-rules を1つのリポジトリに統合**
-2. **開発用ブランチ（main）と公開用ブランチ（production）で管理**
-3. **GitHub Actions でタグ作成時に自動同期**
-4. **submodule を完全に廃止**
+1. ✅ **cursor-workspace と cursor-rules を1つのリポジトリに統合**
+2. ✅ **開発用ブランチ（main）と公開用ブランチ（production）で管理**
+3. ✅ **GitHub Actions でタグ作成時に自動同期**
+4. ✅ **submodule を完全に廃止**
+
+### 完了した実装の概要
+
+**ブランチ構成:**
+- `main`: 開発用（.cursor/rules/ + .cursor/tasks/ + docs/ など）
+- `production`: 公開用（rules/ のみ、orphan ブランチ）
+
+**GitHub Actions ワークフロー:**
+- タグ作成時（`v*`）に自動で production に同期
+- .cursor/rules/ を production の rules/ にコピー
+- production ブランチに同じタグを作成
+- GitHub Release を自動作成
+
+**動作確認:**
+- v1.1.0 タグ作成 → production に同期成功 ✅
+- GitHub Release 作成成功 ✅
 
 ### 要件・制約事項
 
