@@ -41,16 +41,20 @@ jobs:
           mv .cursor/rules rules
           rm -rf .cursor
           
-          # 変更をコミット
+          # 変更をコミット（変更がある場合のみ）
           git add .
-          git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: sync from main ${GITHUB_REF_NAME}"
+            git push origin production
+          fi
           
           # タグを作成（既存の場合は削除して再作成）
           git tag -d ${GITHUB_REF_NAME} 2>/dev/null || true
           git tag ${GITHUB_REF_NAME}
           
-          # production ブランチとタグをプッシュ
-          git push origin production --force
+          # タグをプッシュ
           git push origin ${GITHUB_REF_NAME} --force
       
       - name: Create GitHub Release
