@@ -206,8 +206,6 @@ git worktree remove ../worktrees/feat-42-feature-a
 
 このリポジトリの `.cursor/rules/` は、**production ブランチ**で公開されており、複数のプロジェクトから使用できます。
 
-詳しくは **[SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md)** を参照してください。
-
 ### クイックスタート
 
 ```bash
@@ -239,8 +237,6 @@ git commit -m "feat: Cursor共有ルールを追加"
 - **production**: 公開用（`rules/` のみ、タスクファイルなし）
 
 詳細は [`docs/branch-strategy.md`](docs/branch-strategy.md) を参照。
-
-詳細な手順とトラブルシューティングは [SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md) を参照。
 
 ## 参考資料
 
