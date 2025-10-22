@@ -1,77 +1,56 @@
-# Cursor タスク管理システム
+# Cursor Rules
 
-このプロジェクトでは、Cursor環境でGitHubイシュー駆動開発を採用しています。AIと協力しながら効率的に開発を進めることができます。
+Cursor環境でGitHubイシュー駆動開発を実現する、AI支援型のタスク管理システムです。
 
-## 概要
+## 特徴
 
-- **イシュー駆動開発**: すべての開発はGitHubイシューから始まる
-- **ブランチとタスクファイルの紐付け**: 各イシューに対応するブランチとタスクファイルで進捗を管理
-- **マークダウンチェックリスト**: `[ ]` / `[x]` で視覚的にタスクを管理
-- **AI連携**: ブランチ作成、description生成、タスクファイル作成・更新をAIが支援
+- **GitHubイシュー駆動**: すべての開発タスクはGitHubイシューから始まる
+- **Git Worktree**: 複数イシューの並列開発をサポート
+- **AI連携**: worktree作成、タスクファイル管理をAIが支援
+- **Markdownチェックリスト**: `[ ]` / `[x]` で視覚的にタスクを管理
 
-## 開発フロー
+## クイックスタート
 
-### 基本的な流れ
+### 1. インストール
 
-1. **GitHubでイシューを作成**
-2. **git worktreeでブランチを作成**（AIまたは手動）
-3. **イシューのdescriptionを作成**（AIまたは手動）
-4. **タスクファイルで開発を進める**（AI支援）
+このルールをプロジェクトにインストール（詳細は後述）:
 
-> **注**: どこからAIに任せるかは自由です。すべて手動でも、すべてAIに任せても構いません。基本的にはgit worktreeでブランチを作成することを推奨します。
+```bash
+cd /path/to/your-project
+rm -rf .cursor/rules
+git clone -b production --depth 1 https://github.com/nobunosuke/cursor-rules.git .cursor/rules-temp
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
+git add .cursor/rules
+git commit -m "feat: Cursor共有ルールを追加"
+```
 
-### パターン1: AIに全部任せる（推奨）
+### 2. GitHubでイシューを作成
 
-#### 手順
+例: Issue #42「ユーザー認証機能を実装」
 
-1. **GitHubでイシューを作成**（手動）
-   - 例: Issue #42「ユーザー認証機能を実装」
+### 3. Cursorでイシュー情報をAIに伝える
 
-2. **Cursorでイシュー情報をAIに伝える**
-   ```
-   イシュー #42 を作成しました。タイトルは「ユーザー認証機能を実装」です。
-   ブランチを作成してください。
-   ```
+```
+イシュー #42 を作成しました。タイトルは「ユーザー認証機能を実装」です。
+worktreeを作成してください。
+```
 
-3. **AIが自動的に実行**
-   - イシュー内容から適切なtype（feat/bug/docsなど）を判定
-   - ブランチ名を生成・提案: `feat/42-user-authentication`
-   - **git worktreeとしてブランチを作成**: `git worktree add ../worktrees/feat-42-user-authentication -b feat/42-user-authentication main`
-   - イシューのdescription（詳細説明）を生成
-   - タスクファイル（`.cursor/tasks/FEAT-42_user-authentication.md`）を作成
+### 4. AIが自動実行
 
-4. **GitHub UIでdescriptionをコピペ**
-   - AIが生成したdescriptionをGitHubのイシューページに貼り付け
+- ブランチ名を生成・提案（例: `feat/42-user-authentication`）
+- git worktreeとして作成
+- タスクファイルを作成（`.cursor/tasks/FEAT-42_user-authentication.md`）
 
-5. **作成されたworktreeをCursorで開く**
-   - ターミナルで `cursor {worktree-path}` を実行（例: `cursor ../worktrees/feat-42-user-authentication`）
-   - またはCursor UIから直接開く
-   - AIと一緒にタスクを実装
-   - タスクファイルが自動更新される
+### 5. 作成されたworktreeをCursorで開く
 
-### パターン2: ブランチ・descriptionまで手動でやる
+```bash
+cursor ../worktrees/feat-42-user-authentication
+```
 
-#### 手順
+### 6. AIと一緒に開発
 
-1. **GitHubでイシューを作成**（手動）
-2. **git worktreeでブランチを作成**（手動）
-   ```bash
-   # メインリポジトリから実行
-   git worktree add ../worktrees/feat-42-user-authentication -b feat/42-user-authentication main
-   ```
-3. **イシューのdescriptionを記述**（手動）
-4. **作成したworktreeをCursorで開く**
-   ```bash
-   cursor ../worktrees/feat-42-user-authentication
-   ```
-   - 対応するタスクファイルが存在しない場合、AIが作成を提案
-5. **開発を進める**
-   - AIと一緒にタスクを実装
-   - タスクファイルが自動更新される
-
-### 共通: タスクを進める
-
-AIと一緒にタスクを実装しながら、タスクファイルのチェックリストが自動更新されます：
+タスクファイルのチェックリストが自動更新されます：
 
 ```markdown
 ## In Progress Tasks
@@ -79,171 +58,139 @@ AIと一緒にタスクを実装しながら、タスクファイルのチェッ
 - [ ] ログイン画面のUIを作成
 ```
 
-### 共通: 完了時のコミット
+## 📦 インストール
 
-すべてのタスクが完了すると、AIがコミット・プッシュを提案します。
+**実行場所:** メインリポジトリのルートディレクトリ（`.git` があるディレクトリ）
 
-## Git Worktree の詳細
+### 推奨フォルダ構成
 
-### 複数イシューの並列開発
-
-基本的にgit worktreeを使用しますが、複数のイシューを同時に作業したい場合、複数のworktreeを作成することで、同じリポジトリの異なるブランチを並列で開発できます。
-
-#### 基本的な使い方
-
-```bash
-# worktreeを作成（メインリポジトリから実行）
-git worktree add ../worktrees/feat-42-feature-a feat/42-feature-a
-
-# worktreeをCursorで開く
-cursor ../worktrees/feat-42-feature-a
-
-# worktree一覧を表示
-git worktree list
-
-# worktreeを削除
-git worktree remove ../worktrees/feat-42-feature-a
-```
-
-#### AI駆動開発での活用
-
-1. **複数のCursorウィンドウで並列作業**
-   - ウィンドウ1: メインリポジトリで`main`ブランチ
-   - ウィンドウ2: worktree Aで`feat/42-feature-a`ブランチ
-   - ウィンドウ3: worktree Bで`feat/43-feature-b`ブランチ
-
-2. **各ウィンドウで独立したAI作業**
-   - 各worktreeには対応するタスクファイルが存在
-   - AIは各worktreeで自動的に正しいブランチとタスクファイルを検出
-   - 複数のイシューをAIに並列実装させることが可能
-
-#### ディレクトリ構造例
+このルールは git worktree での開発を前提としています：
 
 ```
-~/projects/
-  main/                          # メインリポジトリ
-    .git/                        # Gitリポジトリ本体
-      worktrees/                 # worktreeメタデータ
-    .cursor/                     # mainブランチのCursor設定
-      rules/
+your-project/
+  main/              ← ここでインストールコマンドを実行
+    .git/
+    .cursor/
+      rules/         ← ここにルールがインストールされる
       tasks/
-  
-  worktrees/                     # worktree専用ディレクトリ
-    feat-42-feature-a/          # worktree A
-      .git                       # ファイル（main/.git/worktrees/へのポインタ）
-      .cursor/                   # feat/42-feature-aブランチのCursor設定
-      src/                       # feat/42-feature-aブランチの内容
-    feat-43-feature-b/          # worktree B
-      .git                       # ファイル（main/.git/worktrees/へのポインタ）
-      .cursor/                   # feat/43-feature-bブランチのCursor設定
-      src/                       # feat/43-feature-bブランチの内容
+  worktrees/         ← 各イシュー用のworktreeディレクトリ
+    feat-42-feature-a/
+    feat-43-feature-b/
 ```
 
-#### 重要なポイント
+詳細は含まれているルール（`git/worktree.mdc`）を参照してください。
 
-- 各worktreeディレクトリには、そのブランチのファイルが全てチェックアウトされます
-- 各worktreeでCursorを開けば、それぞれ独立した環境として動作します
-- worktree削除前に、作業中の変更はコミットまたは退避してください
-
-詳細は [`.cursor/rules/workflows/worktree.mdc`](.cursor/rules/workflows/worktree.mdc) を参照してください。
-
-## ブランチとタスクファイルの命名規則
-
-### ブランチ名
-`{type}/{id}-{description}`
-
-例:
-- `feat/42-user-authentication`
-- `bug/123-fix-login-error`
-- `docs/1-issue-driven`
-
-### タスクファイル名
-`{TYPE}-{ID}_{description}.md`
-
-例:
-- `.cursor/tasks/FEAT-42_user-authentication.md`
-- `.cursor/tasks/BUG-123_fix-login-error.md`
-- `.cursor/tasks/DOCS-1_issue-driven.md`
-
-## タスクファイルの構造
-
-各タスクファイルは[playbooks.com方式](https://playbooks.com/rules/task-lists)に従って構造化されています：
-
-```markdown
-# 機能名
-
-機能の概要説明
-
-## Completed Tasks
-- [x] 完了したタスク1
-- [x] 完了したタスク2
-
-## In Progress Tasks
-- [ ] 現在進行中のタスク1
-- [ ] 現在進行中のタスク2
-
-## Future Tasks
-- [ ] 今後実装予定のタスク1
-
-## Implementation Plan
-実装の詳細計画
-
-## Relevant Files
-- path/to/file1.ts - ファイルの説明
-- path/to/file2.ts - ファイルの説明
-```
-
-## 詳細なルール
-
-プロジェクトの詳細なルールは以下のファイルを参照してください：
-
-- [`.cursor/rules/global.mdc`](.cursor/rules/global.mdc) - グローバルルールとクイックリファレンス
-- [`.cursor/rules/workflows/task.mdc`](.cursor/rules/workflows/task.mdc) - タスク管理と開発フローの統合ルール（命名規則、ファイル構造、AIの動作）
-- [`.cursor/rules/workflows/issue.mdc`](.cursor/rules/workflows/issue.mdc) - GitHubイシュー駆動開発ワークフロー
-- [`.cursor/rules/workflows/pr.mdc`](.cursor/rules/workflows/pr.mdc) - プルリクエストメッセージ作成ルール
-
-## 他のプロジェクトで共有ルールを使う
-
-このリポジトリの `.cursor/rules/` は、**production ブランチ**で公開されており、複数のプロジェクトから使用できます。
-
-### クイックスタート
+### コマンドで実行
 
 ```bash
-# 他のプロジェクトで実行
-cd /path/to/your-project
+# メインリポジトリのルートディレクトリで実行
+cd /path/to/your-project/main
+
 rm -rf .cursor/rules
-git clone -b production --depth 1 \
-  https://github.com/nobunosuke/cursor-workspace.git .cursor/rules-temp
+git clone -b production --depth 1 https://github.com/nobunosuke/cursor-rules.git .cursor/rules-temp
 mv .cursor/rules-temp/rules .cursor/rules
 rm -rf .cursor/rules-temp
-
-# コミット
-git add .cursor/rules
-git commit -m "feat: Cursor共有ルールを追加"
 ```
 
-### ブランチ構成
+### スクリプトで実行
 
-このリポジトリは2つのブランチで管理されています：
+```bash
+# メインリポジトリのルートディレクトリで実行
+cd /path/to/your-project/main
 
-- **main**: 開発用
-  - `.cursor/rules/` - ルールのソース
-  - `.cursor/tasks/` - 開発用タスクファイル
-  - 開発ファイル（README.md, docs/ など）
+curl -sSL https://raw.githubusercontent.com/nobunosuke/cursor-rules/production/install-rules.sh | bash
+```
 
-- **production**: 公開用（orphan ブランチ）
-  - `rules/` - 配布用ルール（ユーザーが取得）
-  - README.md - ユーザー向けドキュメント
-  - LICENSE
-  - install-rules.sh - インストールスクリプト
+### バージョン指定
 
-**設計意図:**
-- `rules/` ディレクトリで配布物を明確に分離
-- タグでバージョン管理（`v1.0.0`, `v1.1.0` など）
-- GitHub Actions で main → production に自動同期
+```bash
+# メインリポジトリのルートディレクトリで実行
+cd /path/to/your-project/main
 
-詳細は [`docs/branch-strategy.md`](docs/branch-strategy.md) を参照。
+git clone -b production https://github.com/nobunosuke/cursor-rules.git .cursor/rules-temp
+cd .cursor/rules-temp && git checkout v1.0.0 && cd ..
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
+```
 
-## 参考資料
+## 📚 ドキュメント
 
-- [playbooks.com - Task Lists](https://playbooks.com/rules/task-lists)
+インストール後、以下のルールファイルを参照してください：
+
+### コアルール
+- **cursor-tasks.mdc** - タスク管理の基本ルール（命名規則、ファイル構造、AIの振る舞い）
+- **global.mdc** - ルールシステム全体のナビゲーション
+
+### Git関連ルール
+- **git/issue.mdc** - worktree・タスクファイル作成支援
+- **git/worktree.mdc** - Git Worktreeの使い方（並列開発）
+- **git/commit.mdc** - コミットメッセージ規約（Conventional Commits）
+- **git/pr.mdc** - PRメッセージ作成ルール
+- **git/merge-strategy.mdc** - ブランチマージ戦略
+
+## 📁 フォルダ構成
+
+```
+your-project/
+  .cursor/
+    rules/                 # ← このリポジトリから取得
+      cursor-tasks.mdc
+      global.mdc
+      git/
+        commit.mdc
+        issue.mdc
+        pr.mdc
+        worktree.mdc
+        merge-strategy.mdc
+    tasks/                 # ← 各プロジェクトのタスクファイル（自分で作成）
+      FEAT-42_feature.md
+```
+
+## 🔄 更新
+
+```bash
+# メインリポジトリのルートディレクトリで実行
+cd /path/to/your-project/main
+
+rm -rf .cursor/rules
+git clone -b production --depth 1 https://github.com/nobunosuke/cursor-rules.git .cursor/rules-temp
+mv .cursor/rules-temp/rules .cursor/rules
+rm -rf .cursor/rules-temp
+git add .cursor/rules
+git commit -m "chore: Cursor共有ルールを最新版に更新"
+```
+
+## 🔧 トラブルシューティング
+
+### ❌ `.cursor/rules/rules/` になってしまう（二重ネスト）
+
+**原因:** 既存の `.cursor/rules` がある状態で `mv` を実行
+
+**解決策:**
+```bash
+# メインリポジトリのルートディレクトリで実行
+rm -rf .cursor/rules
+# その後、通常のインストール手順を実行
+```
+
+**修正方法:**
+```bash
+# 既に二重ネストしてしまった場合（メインリポジトリのルートで実行）
+mv .cursor/rules/rules .cursor/rules-fixed
+rm -rf .cursor/rules
+mv .cursor/rules-fixed .cursor/rules
+```
+
+## 開発に参加したい方へ
+
+このプロジェクトへの貢献を検討されている方は、mainブランチの [DEVELOPMENT.md](https://github.com/nobunosuke/cursor-rules/blob/main/DEVELOPMENT.md) を参照してください。
+
+開発環境のセットアップ、ブランチ戦略、貢献方法などを記載しています。
+
+## 参考
+
+- [playbooks.com - Task Lists](https://playbooks.com/rules/task-lists) - タスクファイルの構造化手法
+
+## 📄 License
+
+MIT

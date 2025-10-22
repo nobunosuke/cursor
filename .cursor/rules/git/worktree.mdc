@@ -25,60 +25,30 @@ git worktreeは、同じGitリポジトリの異なるブランチを複数の�
 ### ディレクトリ構造
 
 ```
-~/projects/
-  main/                          # プライマリworktree（メインリポジトリ）
-    .git/                        # Gitリポジトリ本体（全worktreeで共有）
-      worktrees/                 # worktreeメタデータ
-        feat-42-feature-a/       # worktree Aのメタデータ
-        feat-43-feature-b/       # worktree Bのメタデータ
-    .cursor/                     # mainブランチのCursor設定
-      rules/
-      tasks/
+projects/
+  main/                            # プライマリworktree（メインリポジトリ）
+    .git/
+    .cursor/
     README.md
     src/
-  
-  worktrees/                     # worktree専用ディレクトリ
-    feat-42-feature-a/          # worktree A
-      .git                       # ファイル（main/.git/worktrees/feat-42-feature-a へのポインタ）
-      .cursor/                   # feat/42-feature-aブランチのCursor設定
-      README.md                  # feat/42-feature-aブランチの内容
-      src/                       # feat/42-feature-aブランチの内容
-    feat-43-feature-b/          # worktree B
-      .git                       # ファイル（main/.git/worktrees/feat-43-feature-b へのポインタ）
-      .cursor/                   # feat/43-feature-bブランチのCursor設定
-      README.md                  # feat/43-feature-bブランチの内容
-      src/                       # feat/43-feature-bブランチの内容
+  worktrees/                       # worktree専用ディレクトリ
+    feat-42-user-authentication/   # worktree（ブランチ: feat/42-user-authentication）
+      .cursor/
+      README.md
+      src/
+    fix-43-login-error/            # worktree（ブランチ: fix/43-login-error）
+      .cursor/
+      README.md
+      src/
 ```
 
-**重要**:
-- 各worktreeディレクトリには、そのブランチのファイルが全てチェックアウトされます
-- `.git`はディレクトリではなく**ファイル**で、メインリポジトリへのポインタが書かれています
-- `.cursor/`などのファイルは、そのブランチの内容がそのまま存在します（シンボリックリンクではありません）
-- 各worktreeでCursorを開けば、それぞれ独立した環境として動作します
+各worktreeでCursorを開けば、それぞれ独立した環境として動作します。
 
-### `.cursor/` ディレクトリの引き継ぎ
+## 命名規則
 
-git worktree で新しいブランチを作成すると、`.cursor/` ディレクトリも自動的に引き継がれます。
-
-**Submodule 方式での仕組み**:
-1. `.cursor/rules/` は Submodule として参照されるため、worktree でも同じ参照が引き継がれる
-2. worktree 作成後、`git submodule update --init` で Submodule を初期化
-3. `.cursor/tasks/` は各 worktree で独立して管理（ブランチの内容として存在）
-
-**セットアップ手順**:
-```bash
-# worktree を作成
-git worktree add ../worktrees/feat-42-feature -b feat/42-feature main
-
-# worktree に移動
-cd ../worktrees/feat-42-feature
-
-# Submodule を初期化
-git submodule update --init
-
-# 完了！.cursor/rules/ が使える
-# .cursor/tasks/ はブランチの内容として存在
-```
+worktreeのディレクトリ名は、ブランチ名からスラッシュを削除したものを推奨します：
+- ブランチ `feat/42-user-authentication` → worktree `feat-42-user-authentication`
+- ブランチ `fix/43-login-error` → worktree `fix-43-login-error`
 
 ## 基本コマンド
 
@@ -94,15 +64,11 @@ git worktree add <path> <branch>
 # 例: feat/42-feature-aブランチをworktreeとして追加
 git worktree add ../worktrees/feat-42-feature-a feat/42-feature-a
 
-# Cursorで開く
-cursor ../worktrees/feat-42-feature-a
-
 # 新しいブランチを作成しながらworktreeを追加
 git worktree add -b <new-branch> <path> <start-point>
 
 # 例: mainブランチから新しいブランチを作成してworktreeを追加
 git worktree add -b feat/44-new-feature ../worktrees/feat-44-new-feature main
-cursor ../worktrees/feat-44-new-feature
 ```
 
 ### worktreeの確認
@@ -110,11 +76,6 @@ cursor ../worktrees/feat-44-new-feature
 ```bash
 # worktree一覧を表示
 git worktree list
-
-# 出力例:
-# /Users/horinoburo/projects/main            abc1234 [main]
-# /Users/horinoburo/projects/worktrees/feat-42-feature-a  def5678 [feat/42-feature-a]
-# /Users/horinoburo/projects/worktrees/feat-43-feature-b  ghi9012 [feat/43-feature-b]
 ```
 
 ### worktreeの削除
@@ -128,108 +89,13 @@ git worktree remove ../worktrees/feat-42-feature-a
 
 # 強制削除（未コミットの変更があっても削除）
 git worktree remove --force <path>
-
-# 孤立したworktreeメタデータを削除
-git worktree prune
 ```
 
-## AI駆動開発での活用
+## イシューワークフローとの統合
 
-### ユースケース: 複数イシューの並列作業
+イシュー作成後のブランチ作成は、worktreeとして作成します。詳細は @git/issue.mdc を参照してください。
 
-**シナリオ**: イシュー #42（機能A）とイシュー #43（機能B）を同時に進めたい
-
-#### 手順
-
-1. **イシュー #42 のセットアップ**
-   ```bash
-   cd ~/projects/main
-   git worktree add ../worktrees/feat-42-feature-a feat/42-feature-a
-   ```
-
-2. **Cursorで開く**
-   ```bash
-   cursor ~/projects/worktrees/feat-42-feature-a
-   ```
-   - AIに「タスクを進めてください」と指示
-   - AIは自動的に以下を実行:
-     - `git branch --show-current` → `feat/42-feature-a` を検出
-     - 対応するタスクファイル `.cursor/tasks/FEAT-42_feature-a.md` を読み込み
-     - タスクを実装
-
-3. **イシュー #43 のセットアップ（並列）**
-   ```bash
-   cursor ~/projects/worktrees/feat-43-feature-b
-   ```
-   - 別のCursorウィンドウが開く
-   - 同様にAIがタスクを進行
-
-4. **完了後のクリーンアップ**
-   ```bash
-   # 各worktreeでコミット・プッシュ
-   cd ~/projects/worktrees/feat-42-feature-a
-   
-   # コミット
-   git commit -m "feat: 機能Aを実装"
-   git push origin feat/42-feature-a
-   
-   # メインリポジトリでworktreeを削除
-   cd ~/projects/main
-   git worktree remove ../worktrees/feat-42-feature-a
-   ```
-
-## 既存ワークフローとの統合
-
-### @git/issue.mdc との統合
-
-イシュー作成後のブランチ作成時、デフォルトでworktreeとして作成します。
-
-#### 基本フロー
-
-ユーザーが「イシュー #42 を作成しました。タイトルは『機能A』です。」と伝えた場合：
-
-1. **ブランチ名を生成**: `feat/42-feature-a`
-2. **worktreeとして作成**（デフォルト）:
-   ```bash
-   git worktree add ../worktrees/feat-42-feature-a -b feat/42-feature-a main
-   ```
-3. **タスクファイルを作成**: `.cursor/tasks/FEAT-42_feature-a.md`
-4. **ユーザーに通知**: 
-   - 「worktree `../worktrees/feat-42-feature-a` を作成しました。」
-   - 「次のコマンドでCursorで開いてください: `cursor {absolute-path}/worktrees/feat-42-feature-a`」
-
-ユーザーが明示的に「通常のブランチで作業したい」と指示した場合のみ、`git checkout -b`を使用します。
-
-### @cursor-tasks.mdc との統合
-
-**重要**: `git branch --show-current` はworktree内でも正常に動作します。
-
-- AIがworktree内で呼び出された場合、そのworktreeのブランチを正しく検出
-- タスクファイルの検出・作成・更新ロジックは変更不要
-- `.cursor/tasks/` ディレクトリも、そのブランチの内容に応じて存在します
-
-#### 動作例
-
-```bash
-# worktree内でAIを呼び出す
-cd ~/projects/worktrees/feat-42-feature-a
-
-# AIの内部動作:
-# 1. git branch --show-current → feat/42-feature-a
-# 2. タスクファイル名を生成 → FEAT-42_feature-a.md
-# 3. .cursor/tasks/FEAT-42_feature-a.md を読み込み
-# 4. タスクを実装
-```
-
-#### タスクファイルの管理
-
-- 各worktreeは独立した `.cursor/tasks/` ディレクトリを持ちます（ブランチの内容）
-- タスクファイルは通常のファイルとして扱われ、必要に応じてコミット・マージされる
-- ブランチ間でのタスクファイルの共有は、通常の Git フローに従う
-
-## 注意点とベストプラクティス
-
-### 注意点
+## 注意点
 
 1. **同じブランチを複数worktreeでcheckoutできない**
    - エラー: `fatal: 'feat/42-feature-a' is already checked out at '...'`
@@ -242,34 +108,6 @@ cd ~/projects/worktrees/feat-42-feature-a
 3. **worktreeのパスは相対パスでも絶対パスでもOK**
    - 推奨: メインリポジトリの親ディレクトリに `worktrees/` を作成
    - 例: `main/` と `worktrees/` を同じ階層に配置
-
-### ベストプラクティス
-
-1. **worktreeの命名規則**
-   - ブランチ名と同じにすると分かりやすい
-   - 例: `feat/42-feature-a` → `worktrees/feat-42-feature-a`（スラッシュをハイフンに変換）
-
-2. **worktreeは一時的な作業環境**
-   - 作業完了後は削除する
-   - 長期的に使用する場合は、定期的に `git worktree list` で確認
-
-3. **Cursorのウィンドウ管理**
-   - 各worktreeを別のCursorウィンドウで開く
-   - ウィンドウタイトルでブランチ名を確認
-
-4. **並列作業の計画**
-   - 互いに依存しないタスクを並列実行
-   - ファイル競合を避けるため、異なるファイルを変更するタスクを選択
-
-5. **定期的なクリーンアップ**
-   ```bash
-   # 不要なworktreeを削除
-   git worktree list  # 確認
-   git worktree remove <path>
-   
-   # 孤立したworktreeメタデータを削除
-   git worktree prune
-   ```
 
 ## 参考資料
 

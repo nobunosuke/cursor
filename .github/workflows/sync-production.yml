@@ -35,11 +35,10 @@ jobs:
           git rm -rf rules/ README.md LICENSE || true
           
           # タグが指すコミットから必要なファイルをチェックアウト
-          git checkout ${TAG_COMMIT} -- .cursor/rules/ production-README.md LICENSE
+          git checkout ${TAG_COMMIT} -- .cursor/rules/ README.md LICENSE
           
           # ファイルを適切な場所に配置
           mv .cursor/rules rules
-          mv production-README.md README.md
           rm -rf .cursor
           
           # 変更をコミット（変更がある場合のみ）
