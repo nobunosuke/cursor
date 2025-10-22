@@ -90,3 +90,9 @@ AIは以下を実行：
 3. `.cursor/tasks/{TASK_FILE}.md` でタスク内容を確認
 4. テンプレートに沿ってメッセージを生成
 5. **コピーしやすいようにmarkdownコードブロックで囲んで出力**
+
+## 関連ドキュメント
+
+- @cursor-tasks.mdc - タスクファイルの構造
+- @git/commit.mdc - コミットメッセージ規約
+- @git/merge-strategy.mdc - マージ後の対応

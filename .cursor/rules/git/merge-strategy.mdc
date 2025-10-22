@@ -1,123 +1,109 @@
 ---
-title: ブランチマージ戦略
+description: ブランチマージ戦略
 alwaysApply: false
 ---
 
 # ブランチマージ戦略
 
+## 前提
+
+このドキュメントは **squash merge** を使う場合の戦略を説明します。
+
+**Squash merge とは**:
+- 子ブランチの複数のコミットを1つのコミットにまとめて親ブランチにマージする方法
+- コミット履歴を綺麗に保てる
+- 一般的には「子ブランチは使い捨て」として運用される
+
 ## 問題
 
-子ブランチを親ブランチにマージした後、同じ子ブランチで作業を続けると履歴が汚くなる。
+子ブランチを親ブランチに squash merge した後、同じ子ブランチで作業を続けると問題が発生する。
 
-**原因**:
-- 親ブランチ側: マージコミット or squash で履歴が変わる
-- 子ブランチ側: 元の履歴を保持している
-- 結果: 同じ変更が異なるコミットハッシュで存在 → 単純な rebase では解決しない
+**なぜ問題になるのか**:
 
-## 推奨: 子ブランチを親に同期させる
+```
+【Squash merge前】
+main:     A - B
+feat/42:  A - B - C1 - C2 - C3
+
+【Squash merge後】
+main:     A - B - D (DはC1+C2+C3を1つにまとめたコミット)
+feat/42:  A - B - C1 - C2 - C3 (元の履歴を保持)
+
+【親ブランチに他の変更が入った】
+main:     A - B - D - E
+feat/42:  A - B - C1 - C2 - C3
+
+【feat/42で作業を続けようとすると...】
+- C1, C2, C3とDは内容が同じだが、コミットハッシュが異なる
+- Gitは「異なる変更」として認識
+- rebaseやmergeでコンフリクトが発生する可能性
+```
+
+## 解決策: 子ブランチを親に同期させる
 
 ### なぜこの方法を推奨するのか
 
-**タスクファイルに背景知識が蓄積されるから**
+`.cursor/tasks/` にイシューの背景知識・決定事項が蓄積されるため、同じブランチ（worktree）をそのまま使い続けたい。
 
-- このプロジェクトでは `.cursor/tasks/` にイシューの背景・決定事項が蓄積される
-- 同じブランチで続けることで、過去の議論・決定事項を引き継げる
-- 新しいブランチを作ると、蓄積された背景知識がリセットされる
-- ブランチが増えない（管理コストが低い）
+タスクファイルは worktree に保存されているので、Git の履歴をリセットしても残る。
 
-### 手順
+### 基本手順
 
 ```bash
-# 【前提】子ブランチを親ブランチにマージ済み
+# 【前提】子ブランチを親ブランチにsquash merge済み
 
 # 1. 子ブランチのworktreeで作業
 cd /path/to/worktree/子ブランチ
 
-# 2. 親ブランチの最新を取得
+# 2. 未保存の変更がある場合は退避（なければスキップ）
+git stash
+
+# 3. 親ブランチの最新を取得
 git fetch origin 親ブランチ
 
-# 3. 子ブランチを親の最新にリセット（強制的に同期）
+# 4. 子ブランチを親の最新にリセット（強制的に同期）
 git reset --hard origin/親ブランチ
 
-# 4. これで子ブランチ = 親ブランチ（同期完了）
-# 5. 新しい作業を開始
-git add .
-git commit -m "追加の変更"
-
-# 6. プッシュ（force pushが必要）
-git push origin 子ブランチ --force-with-lease
-```
-
-### 具体例
-
-```bash
-# イシュー #119 をイシュー #118 にマージ済み
-cd ~/MyDev/cursor/worktrees/docs-119-system-design
-
-# 親ブランチの最新に同期
-git fetch origin docs/118-project-document
-git reset --hard origin/docs/118-project-document
-
-# 追加作業
-git add .
-git commit -m "docs: システム設計書の追加修正"
-git push origin docs/119-system-design --force-with-lease
-
-# PR: docs/119-system-design → docs/118-project-document（2回目）
-```
-
-### 注意点
-
-**リセット前に未保存の変更を退避する**:
-
-```bash
-# 方法1: stash を使う
-git stash
-git reset --hard origin/親ブランチ
+# 5. 退避した変更を戻す（stashした場合のみ）
 git stash pop
 
-# 方法2: 別ブランチに退避
-git branch 退避用ブランチ
-git reset --hard origin/親ブランチ
-git cherry-pick 退避用ブランチ
+# 6. 新しい作業を開始
+# （ファイル編集...）
+git add .
+git commit -m "fix: 追加修正"
+
+# 7. プッシュ（force pushが必要）
+git push origin 子ブランチ --force-with-lease
+
+# 8. 再度PR作成: 子ブランチ → 親ブランチ
 ```
 
-**force push は `--force-with-lease` を使う**:
-- リモートに他の人の変更がある場合は失敗するので安全
+**重要なポイント**:
+- `git reset --hard` で子ブランチのGit履歴は消えるが、squash mergeで親ブランチには残っている
+- タスクファイル（`.cursor/tasks/`）はworktreeに残るので、背景知識は引き継げる
+- `--force-with-lease` を使うことで、リモートに他の人の変更がある場合は失敗して安全
 
-### 懸念点: 何度もPRを出すと履歴が追いにくくなる可能性
+## 注意点
 
-1つの子ブランチから何度も（5回、10回と）PRを出すような状況になると、さすがに履歴が追いにくくなる可能性がある。
+### リセット前の確認事項
 
-**対処法**:
-- ある程度の区切り（例：3回目のマージ後）で新しいブランチに切り替える
-- または、親イシュー自体を細分化する
-
-ただし、これは**実際に運用してから考えればいいレベル**の話。通常の使い方（2〜3回程度のPR）であれば問題ない。
-
-## 補足: 新しいブランチを作ることもできる
-
-ブランチを完全に分離したい特殊なケースでは、新しいブランチを作ることもできる：
-
+**未プッシュのコミットがないか確認**:
 ```bash
-# 親ブランチのworktreeに移動
-cd /path/to/worktree/親ブランチ
+# リモートとの差分を確認
+git log origin/feat/42..HEAD
 
-# 親ブランチを最新化
-git pull origin 親ブランチ
-
-# 新しい子ブランチ用のworktreeを作成
-git worktree add ../子ブランチ-phase2 -b 子ブランチ-phase2
+# 差分がある場合はstashまたは別ブランチに退避してからリセット
 ```
 
-**使うケース**:
-- 大きな機能を明確にフェーズ分けしたい
-- 複数人で同じ子ブランチを使っている（force push できない）
-- 何度もPRを出した後、区切りをつけたい
+### Force pushの安全性
+
+**`--force-with-lease` を使う**:
+- リモートに他の人の変更がある場合は失敗するので安全
+- `--force` は危険なので使わない
 
 ## 関連ドキュメント
 
-- `@git/worktree.mdc` - worktreeの作成・管理
-- `@git/commit.mdc` - コミットメッセージ、`.cursor/` の扱い
-- `@git/issue.mdc` - イシュー駆動開発のフロー
-- `@cursor-tasks.mdc` - タスクファイルの管理
+- @git/worktree.mdc - worktreeの作成・管理
+- @git/commit.mdc - コミットメッセージ規約
+- @git/issue.mdc - イシュー駆動開発のフロー
+- @cursor-tasks.mdc - タスクファイルの管理
