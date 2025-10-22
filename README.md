@@ -206,16 +206,13 @@ git worktree remove ../worktrees/feat-42-feature-a
 
 このリポジトリの `.cursor/rules/` は、**production ブランチ**で公開されており、複数のプロジェクトから使用できます。
 
-詳しくは **[SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md)** を参照してください。
-
 ### クイックスタート
 
 ```bash
 # 他のプロジェクトで実行
 cd /path/to/your-project
-
-# production ブランチから .cursor/rules/ をクローン
-git clone -b production --single-branch --depth 1 \
+rm -rf .cursor/rules
+git clone -b production --depth 1 \
   https://github.com/nobunosuke/cursor-workspace.git .cursor/rules-temp
 mv .cursor/rules-temp/rules .cursor/rules
 rm -rf .cursor/rules-temp
@@ -225,22 +222,27 @@ git add .cursor/rules
 git commit -m "feat: Cursor共有ルールを追加"
 ```
 
-**ポイント:**
-- production ブランチには `.cursor/rules/` の内容のみが含まれる（タスクファイルなし）
-- タグでバージョン管理（`v1.0.0`, `v1.1.0` など）
-- 自分のプロジェクトでは `.cursor/tasks/` でタスク管理が可能
-- 個人利用にもチーム開発にも対応
-
 ### ブランチ構成
 
 このリポジトリは2つのブランチで管理されています：
 
-- **main**: 開発用（`.cursor/rules/` + `.cursor/tasks/` + 開発ファイル）
-- **production**: 公開用（`rules/` のみ、タスクファイルなし）
+- **main**: 開発用
+  - `.cursor/rules/` - ルールのソース
+  - `.cursor/tasks/` - 開発用タスクファイル
+  - 開発ファイル（README.md, docs/ など）
+
+- **production**: 公開用（orphan ブランチ）
+  - `rules/` - 配布用ルール（ユーザーが取得）
+  - README.md - ユーザー向けドキュメント
+  - LICENSE
+  - install-rules.sh - インストールスクリプト
+
+**設計意図:**
+- `rules/` ディレクトリで配布物を明確に分離
+- タグでバージョン管理（`v1.0.0`, `v1.1.0` など）
+- GitHub Actions で main → production に自動同期
 
 詳細は [`docs/branch-strategy.md`](docs/branch-strategy.md) を参照。
-
-詳細な手順とトラブルシューティングは [SETUP_SHARED_RULES.md](SETUP_SHARED_RULES.md) を参照。
 
 ## 参考資料
 
